@@ -18,6 +18,12 @@
   var estado = null;        // copia editable del plantel
   var fotosNuevas = {};     // id -> dataURL (se suben al guardar)
   var root = null;
+  var passVal = '';         // la contraseña sobrevive a los re-dibujados
+
+  // Si la página se abre desde el archivo local (file://), igual guarda en la web
+  var API = (location.protocol === 'https:' || location.protocol === 'http:')
+    ? '/api/plantel'
+    : 'https://united-sport-fc.vercel.app/api/plantel';
 
   function clonar(x){ return JSON.parse(JSON.stringify(x)); }
 
@@ -90,7 +96,7 @@
         '<div class="pc-lista">' + filas + '</div>' +
         '<button type="button" class="pc-agregar" data-accion="agregar">+ Agregar jugador</button>' +
         '<div class="pc-pie">' +
-          '<input type="password" id="pcPass" placeholder="Contraseña del capitán" autocomplete="current-password">' +
+          '<input type="password" id="pcPass" placeholder="Contraseña del capitán" autocomplete="current-password" value="' + passVal.replace(/"/g, '&quot;') + '">' +
           '<button type="button" class="pc-guardar" data-accion="guardar">Guardar y publicar</button>' +
         '</div>' +
         '<p class="pc-msj" id="pcMsj"></p>' +
@@ -99,7 +105,11 @@
 
   function msj(texto, esError){
     var el = document.getElementById('pcMsj');
-    if (el){ el.textContent = texto; el.className = 'pc-msj' + (esError ? ' error' : ' ok'); }
+    if (el){
+      el.textContent = texto;
+      el.className = 'pc-msj' + (esError ? ' error' : ' ok');
+      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
   }
 
   /* ---------- foto: elegir archivo y achicar a 400px ---------- */
@@ -129,17 +139,26 @@
 
   /* ---------- guardar ---------- */
   function guardar(){
-    var pass = (document.getElementById('pcPass') || {}).value || '';
-    if (!pass){ msj('Poné la contraseña del capitán.', true); return; }
+    var campo = document.getElementById('pcPass');
+    var pass = (campo && campo.value) || passVal || '';
+    if (!pass){ msj('Poné la contraseña del capitán (el campo de acá abajo).', true); return; }
+    passVal = pass;
     msj('Guardando…');
-    fetch('/api/plantel', {
+    fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: pass, data: estado, fotos: fotosNuevas })
     })
-    .then(function(r){ return r.json().then(function(b){ return { ok: r.ok, b: b }; }); })
+    .then(function(r){
+      return r.json()
+        .then(function(b){ return { ok: r.ok, status: r.status, b: b }; })
+        .catch(function(){ return { ok: false, status: r.status, b: {} }; });
+    })
     .then(function(res){
-      if (!res.ok){ msj(res.b.error || 'Error al guardar', true); return; }
+      if (!res.ok){
+        msj((res.b.error || 'Error al guardar') + ' (HTTP ' + res.status + ')', true);
+        return;
+      }
       window.USFC.PLANTEL_ACTUAL = res.b.data;
       estado = clonar(res.b.data);
       fotosNuevas = {};
@@ -147,7 +166,7 @@
       dibujar();
       msj('✔ Publicado. Ya se ve en la web.');
     })
-    .catch(function(){ msj('Sin conexión con el servidor.', true); });
+    .catch(function(e){ msj('No se pudo conectar con el servidor: ' + e.message, true); });
   }
 
   /* ---------- eventos (delegados) ---------- */
@@ -160,13 +179,15 @@
     var i = fila ? parseInt(fila.dataset.i, 10) : -1;
     var j = i >= 0 ? estado.jugadores[i] : null;
 
-    if (accion === 'cerrar') cerrar();
+    if (accion === 'cerrar'){ cerrar(); return; }
+    if (accion === 'guardar'){ guardar(); return; }
     if (accion === 'agregar'){
       estado.jugadores.splice(estado.jugadores.length - 1, 0, {
         id: 'j' + Date.now(), nombre: '', numero: null, posicion: 'Jugador',
         linea: 'suplente', rol: 'suplente', foto: '', capitan: false
       });
       dibujar();
+      return;
     }
     if (!j) return;
     if (accion === 'foto') elegirFoto(j);
@@ -177,7 +198,10 @@
     if (accion === 'bajar' && i < estado.jugadores.length - 1){
       estado.jugadores.splice(i + 1, 0, estado.jugadores.splice(i, 1)[0]); dibujar();
     }
-    if (accion === 'guardar') guardar();
+  });
+
+  document.addEventListener('input', function(e){
+    if (e.target && e.target.id === 'pcPass') passVal = e.target.value;
   });
 
   document.addEventListener('change', function(e){
