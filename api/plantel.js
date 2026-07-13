@@ -31,6 +31,25 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Datos del plantel inválidos' });
   }
 
+  // Reglas del juego: máximo 11 en cancha, un arquero, números únicos
+  const enCancha = data.jugadores.filter(
+    (j) => j.rol !== 'dt' && ['arquero', 'defensa', 'medio', 'ataque'].includes(j.linea)
+  );
+  if (enCancha.length > 11) {
+    return res.status(400).json({ error: 'Máximo 11 jugadores en cancha (hay ' + enCancha.length + ')' });
+  }
+  if (enCancha.filter((j) => j.linea === 'arquero').length > 1) {
+    return res.status(400).json({ error: 'Solo puede haber un arquero en cancha' });
+  }
+  const vistos = new Set();
+  for (const j of data.jugadores) {
+    if (j.rol === 'dt' || j.numero == null) continue;
+    if (vistos.has(j.numero)) {
+      return res.status(400).json({ error: 'Número repetido: ' + j.numero });
+    }
+    vistos.add(j.numero);
+  }
+
   const headers = {
     apikey: SERVICE_KEY,
     Authorization: 'Bearer ' + SERVICE_KEY

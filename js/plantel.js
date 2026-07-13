@@ -59,14 +59,17 @@
   window.USFC.renderPlantel = render;
   render(window.USFC.PLANTEL_DEFAULT);
 
-  // Después intenta traer el plantel guardado por el capitán
-  fetch(window.USFC.PLANTEL_URL + '?t=' + Date.now(), { cache: 'no-store' })
+  // Después intenta traer el plantel guardado por el capitán.
+  // window.USFC.listo es una promesa que el panel espera antes de abrirse,
+  // para mostrar siempre los datos guardados (no los de fábrica).
+  window.USFC.listo = fetch(window.USFC.PLANTEL_URL + '?t=' + Date.now(), { cache: 'no-store' })
     .then(function(r){ if (!r.ok) throw 0; return r.json(); })
     .then(function(data){
       if (data && data.jugadores && data.jugadores.length){
         window.USFC.PLANTEL_ACTUAL = data;
         render(data);
       }
+      return data;
     })
-    .catch(function(){ /* sin conexión o sin datos: queda el fallback */ });
+    .catch(function(){ return null; /* sin conexión: queda el fallback */ });
 })();
