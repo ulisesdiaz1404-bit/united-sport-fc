@@ -235,278 +235,23 @@
   <div class="contenedor">
     <div class="titulo-seccion reveal-izq">
       <p class="kicker">Plantel</p>
-      <!-- EDITAR: cambiar el esquema en el badge si no es 4-3-3 -->
-      <h2>La Formación <span class="formacion-badge">4-3-3</span></h2>
+      <!-- El badge se calcula solo según cuántos jugadores hay por línea -->
+      <h2>La Formación <span class="formacion-badge" id="formacionBadge">4-3-3</span></h2>
     </div>
 
-    <!-- EDITAR: titulares. Cada .linea es una línea de la cancha (arriba = ataque).
-         Para cambiar el esquema, mové jugadores entre líneas.
-         Fotos: assets/jugadores/persona-01.jpg, 2.jpg... — si falta la foto se muestra la silueta. -->
-    <div class="cancha reveal-scale">
+    <!-- La formación y el banco se dibujan desde js/plantel.js.
+         El capitán los edita desde /#panel (formación, nombres, números,
+         fotos y la C de capitán). -->
+    <div class="cancha reveal-scale" id="cancha">
       <div class="cancha-lineas"></div>
       <div class="area area-arriba"></div>
       <div class="area area-abajo"></div>
-
-      <!-- Delanteros -->
-      <div class="linea">
-        <div class="jugador reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-07.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">7</span>
-          </div>
-          <span class="jugador-nombre">[JUGADOR]</span>
-          <span class="jugador-pos">Extremo Izq.</span>
-        </div>
-        <div class="jugador reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-09.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">9</span>
-          </div>
-          <span class="jugador-nombre">[JUGADOR]</span>
-          <span class="jugador-pos">Delantero</span>
-        </div>
-        <div class="jugador reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-11.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">11</span>
-          </div>
-          <span class="jugador-nombre">[JUGADOR]</span>
-          <span class="jugador-pos">Extremo Der.</span>
-        </div>
-      </div>
-
-      <!-- Mediocampistas -->
-      <div class="linea">
-        <div class="jugador reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-08.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">8</span>
-          </div>
-          <span class="jugador-nombre">[JUGADOR]</span>
-          <span class="jugador-pos">Volante</span>
-        </div>
-        <div class="jugador reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-05.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">5</span>
-          </div>
-          <span class="jugador-nombre">[JUGADOR]</span>
-          <span class="jugador-pos">Volante Central</span>
-        </div>
-        <div class="jugador reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-10.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">10</span>
-          </div>
-          <span class="jugador-nombre">[JUGADOR]</span>
-          <span class="jugador-pos">Enganche</span>
-        </div>
-      </div>
-
-      <!-- Defensores -->
-      <div class="linea">
-        <div class="jugador reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-03.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">3</span>
-          </div>
-          <span class="jugador-nombre">[JUGADOR]</span>
-          <span class="jugador-pos">Lateral Izq.</span>
-        </div>
-        <div class="jugador reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-06.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">6</span>
-          </div>
-          <span class="jugador-nombre">[JUGADOR]</span>
-          <span class="jugador-pos">Central</span>
-        </div>
-        <div class="jugador reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-04.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">4</span>
-          </div>
-          <span class="jugador-nombre">[JUGADOR]</span>
-          <span class="jugador-pos">Central</span>
-        </div>
-        <div class="jugador reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-02.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">2</span>
-          </div>
-          <span class="jugador-nombre">[JUGADOR]</span>
-          <span class="jugador-pos">Lateral Der.</span>
-        </div>
-      </div>
-
-      <!-- Arquero -->
-      <div class="linea">
-        <div class="jugador reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-01.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">1</span>
-          </div>
-          <span class="jugador-nombre">[JUGADOR]</span>
-          <span class="jugador-pos">Arquero</span>
-        </div>
-      </div>
+      <div id="lineas"></div>
     </div>
 
-    <!-- EDITAR: banco de suplentes — agregar o quitar cards según el plantel -->
     <div class="banco">
       <p class="banco-titulo">Banco de Suplentes</p>
-      <div class="grid-banco">
-        <div class="suplente reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-12.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">12</span>
-          </div>
-          <div class="sup-info">
-            <span class="jugador-nombre">[SUPLENTE]</span>
-            <span class="jugador-pos">Arquero</span>
-          </div>
-        </div>
-        <div class="suplente reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-13.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">13</span>
-          </div>
-          <div class="sup-info">
-            <span class="jugador-nombre">[SUPLENTE]</span>
-            <span class="jugador-pos">Defensor</span>
-          </div>
-        </div>
-        <div class="suplente reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-14.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">14</span>
-          </div>
-          <div class="sup-info">
-            <span class="jugador-nombre">[SUPLENTE]</span>
-            <span class="jugador-pos">Mediocampista</span>
-          </div>
-        </div>
-        <div class="suplente reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-15.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">15</span>
-          </div>
-          <div class="sup-info">
-            <span class="jugador-nombre">[SUPLENTE]</span>
-            <span class="jugador-pos">Mediocampista</span>
-          </div>
-        </div>
-        <div class="suplente reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-16.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">16</span>
-          </div>
-          <div class="sup-info">
-            <span class="jugador-nombre">[SUPLENTE]</span>
-            <span class="jugador-pos">Delantero</span>
-          </div>
-        </div>
-        <div class="suplente reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-17.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">17</span>
-          </div>
-          <div class="sup-info">
-            <span class="jugador-nombre">[SUPLENTE]</span>
-            <span class="jugador-pos">Jugador</span>
-          </div>
-        </div>
-        <div class="suplente reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-18.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">18</span>
-          </div>
-          <div class="sup-info">
-            <span class="jugador-nombre">[SUPLENTE]</span>
-            <span class="jugador-pos">Jugador</span>
-          </div>
-        </div>
-        <div class="suplente reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-20.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num">19</span>
-          </div>
-          <div class="sup-info">
-            <span class="jugador-nombre">[SUPLENTE]</span>
-            <span class="jugador-pos">Jugador</span>
-          </div>
-        </div>
-        <div class="suplente reveal">
-          <div class="foto-wrap">
-            <div class="jugador-foto">
-              <svg width="55%" height="55%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>
-              <img src="assets/jugadores/persona-19.jpg" alt="" onerror="this.style.display='none'">
-            </div>
-            <span class="jugador-num dt">DT</span>
-          </div>
-          <div class="sup-info">
-            <span class="jugador-nombre">[NOMBRE DT]</span>
-            <span class="jugador-pos">Director Técnico</span>
-          </div>
-        </div>
-      </div>
+      <div class="grid-banco" id="banco"></div>
     </div>
   </div>
 </section>
@@ -772,6 +517,9 @@
   <span class="lb-contador" id="lbContador"></span>
 </div>
 
+<script src="js/plantel-data.js"></script>
+<script src="js/plantel.js"></script>
 <script src="js/main.js"></script>
+<script src="js/panel.js"></script>
 </body>
 </html>
