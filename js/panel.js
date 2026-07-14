@@ -99,13 +99,13 @@
       '<div class="pc-campos">' +
         '<input class="pc-nombre" data-campo="nombre" value="' + (j.nombre || '').replace(/"/g, '&quot;') + '" placeholder="Nombre">' +
         '<div class="pc-sub">' +
-          (esDT ? '<span class="pc-dt-tag">DT</span>' :
+          (esDT ? '<span class="pc-dt-tag">' + (/director/i.test(j.posicion||'') ? 'DT' : 'CT') + '</span>' :
             '<input class="pc-num" data-campo="numero" type="number" min="1" max="99" value="' + (j.numero != null ? j.numero : '') + '" placeholder="#">') +
           '<input class="pc-pos" data-campo="posicion" value="' + (j.posicion || '').replace(/"/g, '&quot;') + '" placeholder="Posición">' +
         '</div>' +
       '</div>' +
       '<div class="pc-acciones">' +
-        (esDT ? '' :
+        (esDT ? '<button type="button" class="pc-borrar" data-accion="borrar" title="Quitar">✕</button>' :
           '<label class="pc-c' + (j.capitan ? ' activo' : '') + '" title="Capitán">' +
             '<input type="radio" name="capitan" data-accion="capitan"' + (j.capitan ? ' checked' : '') + '>C</label>' +
           '<button type="button" class="pc-borrar" data-accion="borrar" title="Quitar">✕</button>') +
@@ -136,7 +136,10 @@
           GRUPOS.map(function(g){ return grupoHTML(g[0], g[1]); }).join('') +
           '<div class="pc-grupo" data-linea="dt"><p class="pc-grupo-titulo">Cuerpo Técnico</p><div class="pc-grupo-lista">' + dt.map(filaHTML).join('') + '</div></div>' +
         '</div>' +
-        '<button type="button" class="pc-agregar" data-accion="agregar">+ Agregar jugador (entra a Suplentes)</button>' +
+        '<div class="pc-agregar-fila">' +
+          '<button type="button" class="pc-agregar" data-accion="agregar">+ Agregar jugador</button>' +
+          '<button type="button" class="pc-agregar" data-accion="agregarct">+ Agregar cuerpo técnico</button>' +
+        '</div>' +
         '<div class="pc-pie">' +
           '<input type="password" id="pcPass" placeholder="Contraseña del capitán" autocomplete="current-password" value="' + passVal.replace(/"/g, '&quot;') + '">' +
           '<button type="button" class="pc-guardar" data-accion="guardar">Guardar y publicar</button>' +
@@ -336,9 +339,18 @@
 
     if (accion === 'cerrar'){ cerrar(); return; }
     if (accion === 'guardar'){ guardar(); return; }
+    if (accion === 'agregarct'){
+      sucio = true;
+      estado.jugadores.push({
+        id: 'ct' + Date.now(), nombre: '', numero: null, posicion: 'Ayudante Técnico',
+        linea: 'dt', rol: 'dt', foto: '', capitan: false
+      });
+      dibujar();
+      return;
+    }
     if (accion === 'agregar'){
       var idx = estado.jugadores.length;
-      estado.jugadores.forEach(function(x, k){ if (x.rol === 'dt'){ idx = k; } });
+      for (var k = 0; k < estado.jugadores.length; k++){ if (estado.jugadores[k].rol === 'dt'){ idx = k; break; } }
       sucio = true;
       estado.jugadores.splice(idx, 0, {
         id: 'j' + Date.now(), nombre: '', numero: null, posicion: 'Jugador',

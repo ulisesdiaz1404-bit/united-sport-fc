@@ -11,7 +11,7 @@
   function fotoHTML(j, claseNum){
     var img = j.foto ? '<img src="' + j.foto + '" alt="" onerror="this.style.display=\'none\'">' : '';
     var num = j.rol === 'dt'
-      ? '<span class="jugador-num dt">DT</span>'
+      ? '<span class="jugador-num dt">' + (/director/i.test(j.posicion || '') ? 'DT' : 'CT') + '</span>'
       : '<span class="jugador-num' + (claseNum || '') + '">' + (j.numero != null ? j.numero : '') + '</span>';
     var c = j.capitan ? '<span class="badge-c" title="Capitán">C</span>' : '';
     return '<div class="foto-wrap"><div class="jugador-foto">' + SILUETA + img + '</div>' + num + c + '</div>';

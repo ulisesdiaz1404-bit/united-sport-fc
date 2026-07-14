@@ -643,6 +643,8 @@ svg.logo-equipo{background:transparent;object-fit:contain}
 }
 .pc-mover:hover{color:#fff;border-color:var(--gris)}
 .pc-borrar:hover{color:#fff;border-color:var(--rojo);background:rgba(225,29,42,.15)}
+.pc-agregar-fila{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pc-agregar-fila .pc-agregar{margin-top:0;flex:1;min-width:180px}
 .pc-agregar{
   margin-top:12px;width:100%;padding:11px;cursor:pointer;
   background:none;border:1px dashed var(--card-borde);border-radius:10px;
