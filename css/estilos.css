@@ -5,14 +5,14 @@
 :root{
   --rojo:#E11D2A;
   --rojo-oscuro:#9e0f18;
-  --azul:#16233f;          /* azul marino del escudo */
-  --azul-claro:#1f3157;
-  --negro:#080f1e;         /* fondo: azul casi negro */
-  --carbon:#0b1526;        /* secciones alternas */
-  --card:#111e36;
-  --card-borde:#203150;
+  --azul:#1c1c1e;          /* gris oscuro (antes azul marino) */
+  --azul-claro:#2a2a2d;
+  --negro:#060606;         /* fondo: negro */
+  --carbon:#0e0e0f;        /* secciones alternas */
+  --card:#151516;
+  --card-borde:#2b2b2e;
   --blanco:#f5f6fa;
-  --gris:#93a0b8;
+  --gris:#9a9aa2;
   --verde:#1ea34a;
   --fuente-display:'Anton',sans-serif;
   --fuente-sport:'Barlow Condensed',sans-serif;
@@ -57,7 +57,7 @@ a{color:inherit;text-decoration:none}
   transition:background .35s ease,box-shadow .35s ease,padding .35s ease;
 }
 .nav.fija{
-  background:rgba(9,16,32,.85);
+  background:rgba(8,8,9,.85);
   backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
   box-shadow:0 1px 0 rgba(225,29,42,.35);
@@ -88,7 +88,7 @@ a{color:inherit;text-decoration:none}
   .nav-links{
     position:absolute;top:100%;left:0;right:0;
     flex-direction:column;gap:0;
-    background:rgba(9,16,32,.98);backdrop-filter:blur(14px);
+    background:rgba(8,8,9,.98);backdrop-filter:blur(14px);
     max-height:0;overflow:hidden;transition:max-height .4s ease;
   }
   .nav-links.abierto{max-height:440px;box-shadow:0 12px 30px rgba(0,0,0,.5)}
@@ -104,8 +104,8 @@ a{color:inherit;text-decoration:none}
   position:relative;overflow:hidden;text-align:center;
   padding:110px 20px 80px;
   background:
-    radial-gradient(ellipse 80% 55% at 50% -10%, rgba(225,29,42,.20), transparent 60%),
-    radial-gradient(ellipse 90% 60% at 50% 108%, rgba(31,49,87,.55), transparent 62%),
+    radial-gradient(ellipse 80% 55% at 50% -10%, rgba(225,29,42,.22), transparent 60%),
+    radial-gradient(ellipse 90% 60% at 50% 108%, rgba(225,29,42,.12), transparent 62%),
     var(--negro);
 }
 /* franjas diagonales decorativas con parallax */
@@ -792,8 +792,8 @@ svg.logo-equipo{background:transparent;object-fit:contain}
 /* ---------- Equipación / visor 360 de la camiseta ---------- */
 #equipacion{
   background:
-    radial-gradient(ellipse 75% 55% at 22% 30%, rgba(31,49,87,.55), transparent 62%),
-    radial-gradient(ellipse 60% 50% at 90% 90%, rgba(225,29,42,.10), transparent 60%),
+    radial-gradient(ellipse 75% 55% at 22% 30%, rgba(60,60,66,.45), transparent 62%),
+    radial-gradient(ellipse 60% 50% at 90% 90%, rgba(225,29,42,.12), transparent 60%),
     var(--negro);
 }
 .kit-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center}
@@ -811,7 +811,7 @@ svg.logo-equipo{background:transparent;object-fit:contain}
 .kit-visor::before{
   content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   width:min(78%,420px);aspect-ratio:1;border-radius:50%;
-  background:radial-gradient(circle,rgba(31,49,87,.7),rgba(31,49,87,0) 68%);
+  background:radial-gradient(circle,rgba(48,48,54,.7),rgba(48,48,54,0) 68%);
   filter:blur(4px);
 }
 /* anillo giratorio decorativo */
@@ -838,7 +838,7 @@ svg.logo-equipo{background:transparent;object-fit:contain}
 .kit-pista{
   position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
   display:inline-flex;align-items:center;gap:9px;
-  background:rgba(9,16,32,.72);border:1px solid var(--card-borde);
+  background:rgba(10,10,11,.72);border:1px solid var(--card-borde);
   border-radius:50px;padding:8px 18px;
   font-family:var(--fuente-sport);font-weight:600;font-size:.82rem;
   letter-spacing:.18em;text-transform:uppercase;color:var(--gris);
