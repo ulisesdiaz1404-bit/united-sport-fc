@@ -1,7 +1,8 @@
 /* ============================================================
    UNITED SPORT FC — Visor 3D de la camiseta (Three.js)
-   Malla real extruida con volumen + iluminación + texturas
-   de diseño (frente: escudo · espalda: GABRIEL 7). Girala 360°.
+   Camiseta sobre un torso de maniquí real: cuerpo con pecho,
+   hombros y cintura, mangas y cuello con volumen, cabeza gris.
+   Frente: escudo · Espalda: GABRIEL 7. Arrastrá para girar 360°.
    ============================================================ */
 (function () {
   'use strict';
@@ -10,86 +11,98 @@
   if (!visor || !window.THREE) return;
 
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var PI = Math.PI;
 
-  /* ---------- Contorno de la camiseta (unidades de escena, y hacia arriba) ---------- */
-  var CP = [
-    [0.26, 1.14], [0.58, 1.10], [0.98, 0.95], [1.16, 0.74], [0.99, 0.54],
-    [0.70, 0.63], [0.74, 0.05], [0.76, -0.60], [0.70, -1.22], [0.0, -1.28],
-    [-0.70, -1.22], [-0.76, -0.60], [-0.74, 0.05], [-0.70, 0.63], [-0.99, 0.54],
-    [-1.16, 0.74], [-0.98, 0.95], [-0.58, 1.10], [-0.26, 1.14], [0.0, 0.98]
+  /* ---------- Perfil del torso (t: 0 dobladillo → 1 hombros) ---------- */
+  var PROFILE = [
+    /* t,     y,     rx,   rz  */
+    [0.00, -1.30, 0.64, 0.30],
+    [0.28, -0.58, 0.58, 0.27],
+    [0.50, -0.05, 0.59, 0.27],
+    [0.70, 0.52, 0.73, 0.33],
+    [0.87, 0.90, 0.92, 0.33],
+    [0.95, 1.05, 0.78, 0.30],
+    [1.00, 1.14, 0.46, 0.23]
   ];
-
-  /* Catmull-Rom cerrado -> contorno suave */
-  function smoothClosed(pts, perSeg) {
-    var out = [], n = pts.length;
-    for (var i = 0; i < n; i++) {
-      var p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
-      for (var t = 0; t < perSeg; t++) {
-        var s = t / perSeg, s2 = s * s, s3 = s2 * s;
-        out.push([
-          0.5 * ((2 * p1[0]) + (-p0[0] + p2[0]) * s + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * s2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * s3),
-          0.5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * s + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * s2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * s3)
-        ]);
+  function smoothstep(a) { return a * a * (3 - 2 * a); }
+  function profile(t) {
+    for (var i = 0; i < PROFILE.length - 1; i++) {
+      var A = PROFILE[i], B = PROFILE[i + 1];
+      if (t <= B[0] || i === PROFILE.length - 2) {
+        var f = smoothstep((t - A[0]) / (B[0] - A[0] || 1));
+        return {
+          y: A[1] + (B[1] - A[1]) * f,
+          rx: A[2] + (B[2] - A[2]) * f,
+          rz: A[3] + (B[3] - A[3]) * f
+        };
       }
     }
-    return out;
+    return { y: PROFILE[0][1], rx: PROFILE[0][2], rz: PROFILE[0][3] };
   }
 
-  var CONTOUR = smoothClosed(CP, 9);
-
-  /* bounding box del contorno */
-  var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-  CONTOUR.forEach(function (p) {
-    if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0];
-    if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1];
-  });
-  var W = maxX - minX, H = maxY - minY;
-
-  /* ---------- Texturas de diseño en canvas ---------- */
-  var CANW = 1024, CANH = Math.round(CANW * H / W);
-  function mapX(x) { return (x - minX) / W * CANW; }
-  function mapY(y) { return (1 - (y - minY) / H) * CANH; }
-  function u2px(u) { return u / W * CANW; } /* longitud en unidades -> px */
-
-  var COL_WHITE = '#f3f4f6', COL_BLACK = '#141414', COL_RED = '#d21f2b';
-
-  function poly(ctx, pts) {
-    ctx.beginPath();
-    ctx.moveTo(mapX(pts[0][0]), mapY(pts[0][1]));
-    for (var i = 1; i < pts.length; i++) ctx.lineTo(mapX(pts[i][0]), mapY(pts[i][1]));
-    ctx.closePath();
-    ctx.fill();
+  /* Media superficie del torso (frente o espalda) con UV para textura */
+  function buildTorsoHalf(th0, th1) {
+    var HSEG = 54, ASEG = 40;
+    var pos = [], uv = [], idx = [];
+    for (var i = 0; i <= HSEG; i++) {
+      var t = i / HSEG, p = profile(t);
+      for (var j = 0; j <= ASEG; j++) {
+        var a = th0 + (th1 - th0) * (j / ASEG);
+        pos.push(p.rx * Math.sin(a), p.y, p.rz * Math.cos(a));
+        uv.push(j / ASEG, t);
+      }
+    }
+    for (i = 0; i < HSEG; i++) {
+      for (j = 0; j < ASEG; j++) {
+        var a0 = i * (ASEG + 1) + j, b0 = a0 + 1, c0 = a0 + (ASEG + 1), d0 = c0 + 1;
+        idx.push(a0, c0, b0, b0, c0, d0);
+      }
+    }
+    var g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    return g;
   }
 
-  /* mangas raglán + panel lateral + cuello (comunes a frente y espalda) */
+  /* Cilindro/cono orientado de A a B (para mangas, cuello, brazos) */
+  function tube(ax, ay, az, bx, by, bz, rBottom, rTop) {
+    var dx = bx - ax, dy = by - ay, dz = bz - az;
+    var h = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    var geo = new THREE.CylinderGeometry(rTop, rBottom, h, 28, 1, false);
+    var mesh = new THREE.Mesh(geo);
+    mesh.position.set((ax + bx) / 2, (ay + by) / 2, (az + bz) / 2);
+    mesh.quaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(dx / h, dy / h, dz / h)
+    );
+    mesh.updateMatrix();
+    geo.applyMatrix4(mesh.matrix);
+    return geo;
+  }
+
+  /* ---------- Texturas de diseño (en espacio UV 0..1) ---------- */
+  var CANW = 1024, CANH = 1200;
+  function px(u) { return u * CANW; }
+  function py(v) { return (1 - v) * CANH; }
+  var COL_WHITE = '#f3f4f6', COL_BLACK = '#161616';
+
   function baseFabric(ctx) {
     ctx.fillStyle = COL_WHITE;
     ctx.fillRect(0, 0, CANW, CANH);
-
+    /* paneles laterales negros (en los cantos = costuras del cuerpo) */
     ctx.fillStyle = COL_BLACK;
-    /* manga raglán derecha (llega hasta el cuello) */
-    poly(ctx, [[0.28, 1.13], [0.46, 1.12], [0.60, 1.09], [0.98, 0.95], [1.16, 0.74], [0.99, 0.54], [0.70, 0.63], [0.40, 0.90]]);
-    /* manga raglán izquierda */
-    poly(ctx, [[-0.28, 1.13], [-0.46, 1.12], [-0.60, 1.09], [-0.98, 0.95], [-1.16, 0.74], [-0.99, 0.54], [-0.70, 0.63], [-0.40, 0.90]]);
-    /* panel lateral derecho */
-    poly(ctx, [[0.70, 0.60], [0.765, 0.02], [0.72, -1.20], [0.585, -1.18], [0.60, 0.02], [0.55, 0.58]]);
-    /* panel lateral izquierdo */
-    poly(ctx, [[-0.70, 0.60], [-0.765, 0.02], [-0.72, -1.20], [-0.585, -1.18], [-0.60, 0.02], [-0.55, 0.58]]);
-
-    /* cuello negro */
-    ctx.strokeStyle = COL_BLACK;
-    ctx.lineWidth = u2px(0.075);
-    ctx.lineJoin = ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(mapX(0.27), mapY(1.13));
-    ctx.quadraticCurveTo(mapX(0), mapY(0.955), mapX(-0.27), mapY(1.13));
-    ctx.stroke();
+    ctx.fillRect(0, py(0.90), px(0.085), py(0) - py(0.90));
+    ctx.fillRect(px(0.915), py(0.90), px(0.085), py(0) - py(0.90));
+    /* cuello negro arriba */
+    ctx.fillRect(0, 0, CANW, py(0.955));
   }
 
-  function drawSwoosh(ctx, cx, cy, scale) {
+  function drawSwoosh(ctx, cu, cv, s) {
     ctx.save();
-    ctx.translate(mapX(cx), mapY(cy));
-    ctx.scale(u2px(scale), u2px(scale));
+    ctx.translate(px(cu), py(cv));
+    ctx.scale(px(s), px(s));
     ctx.fillStyle = COL_BLACK;
     ctx.beginPath();
     ctx.moveTo(-0.5, 0.16);
@@ -103,38 +116,15 @@
     ctx.restore();
   }
 
-  /* número con doble contorno (estilo del kit) */
-  function drawNumber(ctx, txt, cx, cy, sizeUnits) {
-    var px = u2px(sizeUnits);
-    ctx.font = '400 ' + px + 'px "Anton", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.lineJoin = 'round';
-    var x = mapX(cx), y = mapY(cy);
-    ctx.strokeStyle = COL_BLACK; ctx.lineWidth = u2px(0.11); ctx.strokeText(txt, x, y);
-    ctx.strokeStyle = COL_WHITE; ctx.lineWidth = u2px(0.055); ctx.strokeText(txt, x, y);
-    ctx.fillStyle = COL_BLACK; ctx.fillText(txt, x, y);
-  }
-
-  function drawName(ctx, txt, cx, cy, sizeUnits) {
-    var px = u2px(sizeUnits);
-    ctx.font = '700 ' + px + 'px "Barlow Condensed", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = COL_BLACK;
-    var spaced = txt.split('').join(' ');
-    ctx.fillText(spaced, mapX(cx), mapY(cy));
-  }
-
   function buildFrontCanvas(shieldImg) {
     var c = document.createElement('canvas'); c.width = CANW; c.height = CANH;
     var ctx = c.getContext('2d');
     baseFabric(ctx);
-    drawSwoosh(ctx, 0, 0.66, 0.34);
+    drawSwoosh(ctx, 0.5, 0.75, 0.12);
     if (shieldImg) {
-      var wpx = u2px(0.5);
-      var hpx = wpx * (shieldImg.naturalHeight / shieldImg.naturalWidth);
-      ctx.drawImage(shieldImg, mapX(0) - wpx / 2, mapY(0.24) - hpx / 2, wpx, hpx);
+      var w = px(0.30);
+      var h = w * (shieldImg.naturalHeight / shieldImg.naturalWidth);
+      ctx.drawImage(shieldImg, px(0.5) - w / 2, py(0.62) - h / 2, w, h);
     }
     return c;
   }
@@ -142,61 +132,21 @@
   function buildBackCanvas() {
     var c = document.createElement('canvas'); c.width = CANW; c.height = CANH;
     var ctx = c.getContext('2d');
-    /* espejar en horizontal: al ver la espalda (cámara detrás) el texto queda legible */
-    ctx.translate(CANW, 0); ctx.scale(-1, 1);
+    ctx.translate(CANW, 0); ctx.scale(-1, 1); /* espejo → texto legible desde atrás */
     baseFabric(ctx);
-    drawName(ctx, 'GABRIEL', 0, 0.66, 0.19);
-    drawNumber(ctx, '7', 0, 0.02, 1.05);
+    ctx.fillStyle = COL_BLACK;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    /* nombre */
+    ctx.font = '700 ' + px(0.075) + 'px "Barlow Condensed", sans-serif';
+    ctx.fillText('G A B R I E L', px(0.5), py(0.80));
+    /* número con doble contorno */
+    var np = px(0.42);
+    ctx.font = '400 ' + np + 'px "Anton", sans-serif';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = COL_BLACK; ctx.lineWidth = px(0.045); ctx.strokeText('7', px(0.5), py(0.55));
+    ctx.strokeStyle = COL_WHITE; ctx.lineWidth = px(0.022); ctx.strokeText('7', px(0.5), py(0.55));
+    ctx.fillStyle = COL_BLACK; ctx.fillText('7', px(0.5), py(0.55));
     return c;
-  }
-
-  /* ---------- Geometría 3D de la camiseta ---------- */
-  function buildGeometry() {
-    var shape = new THREE.Shape();
-    shape.moveTo(CONTOUR[0][0], CONTOUR[0][1]);
-    for (var i = 1; i < CONTOUR.length; i++) shape.lineTo(CONTOUR[i][0], CONTOUR[i][1]);
-    shape.closePath();
-
-    var uvGen = {
-      generateTopUV: function (geometry, vertices, a, b, c) {
-        var res = [];
-        [a, b, c].forEach(function (idx) {
-          var x = vertices[idx * 3], y = vertices[idx * 3 + 1];
-          res.push(new THREE.Vector2((x - minX) / W, (y - minY) / H));
-        });
-        return res;
-      },
-      generateSideWallUV: function () {
-        return [new THREE.Vector2(0, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 0)];
-      }
-    };
-
-    var geo = new THREE.ExtrudeGeometry(shape, {
-      depth: 0.17, bevelEnabled: true, bevelThickness: 0.07,
-      bevelSize: 0.055, bevelSegments: 4, steps: 1, curveSegments: 1, UVGenerator: uvGen
-    });
-    geo.center();
-
-    /* nº de triángulos de una tapa */
-    var F = THREE.ShapeUtils.triangulateShape(CONTOUR.map(function (p) { return new THREE.Vector2(p[0], p[1]); }), []).length;
-    var F3 = F * 3;
-
-    var pos = geo.attributes.position.array;
-    function avgZ(startVert, count) {
-      var s = 0; for (var v = startVert; v < startVert + count; v++) s += pos[v * 3 + 2];
-      return s / count;
-    }
-    var total = geo.attributes.position.count;
-    geo.clearGroups();
-    if (2 * F3 <= total) {
-      var frontFirst = avgZ(0, F3) >= avgZ(F3, F3);
-      geo.addGroup(0, F3, frontFirst ? 0 : 1);
-      geo.addGroup(F3, F3, frontFirst ? 1 : 0);
-      geo.addGroup(2 * F3, total - 2 * F3, 2);
-    } else {
-      geo.addGroup(0, total, 2);
-    }
-    return geo;
   }
 
   /* ---------- Escena ---------- */
@@ -215,21 +165,40 @@
 
   var scene = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
-  camera.position.set(0, 0, 6);
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x565b68, 0.62));
-  var key = new THREE.DirectionalLight(0xffffff, 1.05); key.position.set(2.5, 3, 4); scene.add(key);
-  var fill = new THREE.DirectionalLight(0xffffff, 0.42); fill.position.set(-3.5, 0.5, 2.5); scene.add(fill);
-  var rim = new THREE.DirectionalLight(0x9bb4ff, 0.55); rim.position.set(0, 1.5, -4); scene.add(rim);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x4a4f5c, 0.66));
+  var key = new THREE.DirectionalLight(0xffffff, 1.0); key.position.set(2.5, 3, 4); scene.add(key);
+  var fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-3.5, 0.6, 2.5); scene.add(fill);
+  var rim = new THREE.DirectionalLight(0x9bb4ff, 0.5); rim.position.set(0, 1.5, -4); scene.add(rim);
 
   var group = new THREE.Group();
   scene.add(group);
 
-  var sideMat = new THREE.MeshStandardMaterial({ color: 0xe4e5e9, roughness: 0.92, metalness: 0 });
-  var frontMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.86, metalness: 0 });
-  var backMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.86, metalness: 0 });
-  var mesh = new THREE.Mesh(buildGeometry(), [frontMat, backMat, sideMat]);
-  group.add(mesh);
+  var manMat = new THREE.MeshStandardMaterial({ color: 0xccd0d7, roughness: 0.95, metalness: 0 });
+  var blackMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
+  var frontMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.82, metalness: 0, side: THREE.DoubleSide });
+  var backMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.82, metalness: 0, side: THREE.DoubleSide });
+
+  /* torso (camiseta) — dos mitades */
+  group.add(new THREE.Mesh(buildTorsoHalf(-PI / 2, PI / 2), frontMat));   /* frente (+z) */
+  group.add(new THREE.Mesh(buildTorsoHalf(PI / 2, 3 * PI / 2), backMat));  /* espalda (−z) */
+
+  /* mangas negras + brazos de maniquí */
+  [1, -1].forEach(function (s) {
+    group.add(new THREE.Mesh(tube(s * 0.60, 0.82, 0.0, s * 1.16, 0.52, 0.04, 0.30, 0.185), blackMat));
+    group.add(new THREE.Mesh(tube(s * 1.16, 0.52, 0.04, s * 1.30, 0.24, 0.05, 0.17, 0.135), manMat));
+  });
+
+  /* cuello + cabeza de maniquí */
+  group.add(new THREE.Mesh(tube(0, 1.00, 0, 0, 1.36, 0, 0.20, 0.165), manMat));
+  var head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 32, 24), manMat);
+  head.position.set(0, 1.62, 0); head.scale.set(1, 1.14, 1.02);
+  group.add(head);
+
+  /* cuello negro (borde de la camiseta) — anillo elíptico */
+  var collar = new THREE.Mesh(new THREE.TorusGeometry(0.30, 0.045, 16, 40), blackMat);
+  collar.rotation.x = PI / 2; collar.position.set(0, 1.05, 0); collar.scale.set(1.5, 0.78, 1);
+  group.add(collar);
 
   function applyTexture(mat, canv) {
     var tex = new THREE.CanvasTexture(canv);
@@ -238,10 +207,8 @@
     mat.map = tex; mat.needsUpdate = true;
   }
 
-  /* espalda ya se puede pintar; frente espera al escudo */
   applyTexture(backMat, buildBackCanvas());
-
-  function paintFront(shieldImg) { applyTexture(frontMat, buildFrontCanvas(shieldImg)); if (poster) poster.style.display = 'none'; }
+  function paintFront(img) { applyTexture(frontMat, buildFrontCanvas(img)); if (poster) poster.style.display = 'none'; }
 
   function start() {
     var img = new Image();
@@ -256,17 +223,23 @@
     ]).then(start, start);
   } else { start(); }
 
-  /* ---------- Ajuste de tamaño ---------- */
+  /* ---------- Encaje de cámara al bounding box ---------- */
+  var box = new THREE.Box3().setFromObject(group);
+  var size = box.getSize(new THREE.Vector3());
+  var center = box.getCenter(new THREE.Vector3());
+  group.position.y -= center.y; /* centrar verticalmente */
+  var radius = 0.5 * Math.sqrt(size.x * size.x + size.y * size.y);
+
   function fit() {
     var w = visor.clientWidth, h = visor.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
-    var aspect = w / h;
-    camera.aspect = aspect;
-    var vFOV = camera.fov * Math.PI / 180;
-    var fitH = (H / 2) / Math.tan(vFOV / 2);
-    var fitW = (W / 2) / Math.tan(vFOV / 2) / aspect;
-    camera.position.z = Math.max(fitH, fitW) * 1.16;
+    camera.aspect = w / h;
+    var vFOV = camera.fov * PI / 180;
+    var distH = radius / Math.tan(vFOV / 2);
+    var distW = radius / Math.tan(vFOV / 2) / camera.aspect;
+    camera.position.set(0, 0, Math.max(distH, distW) * 1.08);
+    camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
   }
   fit();
@@ -274,20 +247,20 @@
   else window.addEventListener('resize', fit);
 
   /* ---------- Interacción: arrastrar con inercia + giro automático ---------- */
-  var rotY = -0.5, rotX = 0.05, velY = 0, velX = 0, dragging = false, px = 0, py = 0;
-  var AUTO = reduceMotion ? 0 : 0.35; /* rad/s */
+  var rotY = -0.5, rotX = 0.02, velY = 0, velX = 0, dragging = false, lx = 0, ly = 0;
+  var AUTO = reduceMotion ? 0 : 0.32;
 
   visor.addEventListener('pointerdown', function (e) {
-    dragging = true; px = e.clientX; py = e.clientY; velY = velX = 0;
+    dragging = true; lx = e.clientX; ly = e.clientY; velY = velX = 0;
     visor.classList.add('tocado');
     if (visor.setPointerCapture) visor.setPointerCapture(e.pointerId);
   });
   visor.addEventListener('pointermove', function (e) {
     if (!dragging) return;
-    var dx = e.clientX - px, dy = e.clientY - py; px = e.clientX; py = e.clientY;
+    var dx = e.clientX - lx, dy = e.clientY - ly; lx = e.clientX; ly = e.clientY;
     velY = dx * 0.010; velX = dy * 0.006;
     rotY += velY; rotX += velX;
-    rotX = Math.max(-0.6, Math.min(0.6, rotX));
+    rotX = Math.max(-0.5, Math.min(0.5, rotX));
   });
   function release() { dragging = false; }
   visor.addEventListener('pointerup', release);
@@ -301,8 +274,8 @@
       rotY += AUTO * dt + velY;
       rotX += velX;
       velY *= 0.93; velX *= 0.93;
-      rotX += (0 - rotX) * 0.02;            /* vuelve suave a la horizontal */
-      rotX = Math.max(-0.6, Math.min(0.6, rotX));
+      rotX += (0 - rotX) * 0.02;
+      rotX = Math.max(-0.5, Math.min(0.5, rotX));
     }
     group.rotation.y = rotY;
     group.rotation.x = rotX;
