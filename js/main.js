@@ -177,4 +177,6 @@
       if (e.key === 'ArrowRight') mover(1);
     });
   }
+
+  /* El visor 3D de la equipación vive en js/kit3d.js (Three.js). */
 })();

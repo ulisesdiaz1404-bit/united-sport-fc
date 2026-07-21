@@ -6,11 +6,13 @@
 <title>UNITED SPORT FC — Humility, Heart and Family | MOMCSL Manalapan, NJ</title>
 <meta name="description" content="United Sport FC — club de fútbol amateur de la liga MOMCSL en Manalapan, New Jersey. Fixture, resultados, tabla de posiciones y galería.">
 <meta name="theme-color" content="#0a0a0c">
-<link rel="icon" type="image/png" href="assets/escudo.png">
+<link rel="icon" type="image/png" href="assets/escudo-nuevo.png">
 <meta property="og:type" content="website">
 <meta property="og:title" content="United Sport FC — Humility, Heart and Family">
 <meta property="og:description" content="Club de fútbol amateur de la liga MOMCSL en Manalapan, New Jersey. Fixture, resultados, plantel y galería.">
-<meta property="og:image" content="assets/escudo-arte.jpg">
+<meta property="og:image" content="assets/escudo-og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="assets/escudo-og.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -50,7 +52,7 @@
 <nav class="nav" id="nav">
   <div class="nav-inner">
     <a href="#inicio" class="nav-logo">
-      <img class="mini-escudo" src="assets/escudo.png" alt="Escudo United Sport FC">
+      <img class="mini-escudo" src="assets/escudo-nuevo.png" alt="Escudo United Sport FC">
       UNITED <span style="color:var(--rojo)">SPORT</span>&nbsp;FC
     </a>
     <button class="nav-burger" id="burger" aria-label="Abrir menú">
@@ -60,6 +62,7 @@
       <li><a href="#fixture">Fixture</a></li>
       <li><a href="#resultados">Resultados</a></li>
       <li><a href="#plantel">Plantel</a></li>
+      <li><a href="#equipacion">Equipación</a></li>
       <li><a href="#tabla">Tabla</a></li>
       <li><a href="#stats">Stats</a></li>
       <li><a href="#galeria">Galería</a></li>
@@ -75,7 +78,7 @@
   <div class="hero-franja franja-3" data-parallax="0.15"></div>
 
   <p class="hero-liga">Liga <strong>MOMCSL</strong> · Manalapan, New Jersey</p>
-  <img class="hero-escudo" src="assets/escudo.png" alt="Escudo United Sport FC">
+  <img class="hero-escudo" src="assets/escudo-nuevo.png" alt="Escudo United Sport FC">
   <h1>United <span class="rojo">Sport</span> FC</h1>
   <p class="hero-lema">Humility · <em>Heart</em> · and Family</p>
   <a href="#fixture" class="hero-cta">
@@ -90,22 +93,22 @@
   <span class="texto-fondo" data-parallax="0.12">MATCHDAY</span>
   <div class="contenedor">
     <div class="titulo-seccion reveal-izq">
-      <p class="kicker">Próximos Partidos</p>
-      <h2>La vuelta de la <span style="color:var(--rojo)">semifinal</span></h2>
+      <p class="kicker">Fin de la Semifinal</p>
+      <h2>Caímos en la <span style="color:var(--rojo)">semifinal</span></h2>
     </div>
 
-    <!-- EDITAR: próximo partido. data-kickoff = fecha y hora del partido
-         (el countdown se arma solo; hora de NJ = -04:00 en verano) -->
-    <div class="matchday reveal-scale" data-kickoff="2026-07-19T09:00:00-04:00">
+    <!-- EDITAR: último partido de la temporada. Semifinal vuelta: se perdió 4-5
+         (global 5-6). La temporada cerró acá. -->
+    <div class="matchday reveal-scale">
       <span class="matchday-etiqueta">Semifinal · Vuelta · MOMCSL</span>
       <div class="matchday-equipos">
         <div class="md-equipo">
-          <img class="escudo" src="assets/escudo.png" alt="Escudo United Sport FC">
+          <img class="escudo" src="assets/escudo-nuevo.png" alt="Escudo United Sport FC">
           <span class="nombre">United Sport FC</span>
         </div>
         <div>
-          <div class="md-vs">VS</div>
-          <div class="md-hora">9:00 AM</div>
+          <div class="md-vs" style="color:var(--rojo)">4&nbsp;–&nbsp;5</div>
+          <div class="md-hora">Final</div>
         </div>
         <div class="md-equipo">
           <img class="escudo logo-rival" src="assets/equipos/lobos.jpg" alt="Escudo Lobos FC">
@@ -113,24 +116,22 @@
         </div>
       </div>
 
-      <!-- Countdown (se llena solo con JS según data-kickoff) -->
-      <div class="countdown" id="countdown">
-        <div class="cd-unidad"><span class="cd-num" id="cdDias">--</span><span class="cd-label">Días</span></div>
-        <div class="cd-unidad"><span class="cd-num" id="cdHoras">--</span><span class="cd-label">Horas</span></div>
-        <div class="cd-unidad"><span class="cd-num" id="cdMin">--</span><span class="cd-label">Min</span></div>
-        <div class="cd-unidad"><span class="cd-num" id="cdSeg">--</span><span class="cd-label">Seg</span></div>
-      </div>
-      <p class="cd-vivo" id="cdVivo" style="display:none">¡MATCHDAY! 🔴⚪</p>
+      <p class="cd-vivo" style="font-size:clamp(1.1rem,3vw,1.5rem)">Partidazo hasta el final. Se nos escapó por un gol. 🔴⚪</p>
 
       <div class="matchday-info">
         <span><b>Domingo 19 de Julio</b></span>
         <span class="dot">●</span>
-        <span>Manalapan Recreation Center</span>
-        <span class="dot">●</span>
-        <span><b>Field B</b></span>
+        <span>Manalapan · Field B</span>
         <span class="dot">●</span>
         <span>Ida: <b>1-1</b></span>
+        <span class="dot">●</span>
+        <span>Global: <b>5-6</b></span>
       </div>
+
+      <p style="margin-top:26px;text-align:center;font-family:var(--fuente-sport);font-weight:600;letter-spacing:.06em;color:var(--gris);text-transform:uppercase">
+        Gracias por bancar toda la temporada. Volvemos con todo —
+        <a href="#equipacion" style="color:var(--rojo)">mirá la nueva camiseta del próximo torneo ↓</a>
+      </p>
     </div>
   </div>
 </section>
@@ -148,16 +149,33 @@
         Forma
         <span class="chips">
           <span class="chip v">V</span>
-          <span class="chip d">D</span>
-          <span class="chip v">V</span>
           <span class="chip v">V</span>
           <span class="chip e">E</span>
+          <span class="chip e">E</span>
+          <span class="chip d">D</span>
         </span>
       </div>
     </div>
 
     <div class="grid-resultados">
       <!-- EDITAR: cada card es un resultado. data-goles = marcador final -->
+      <article class="card-resultado reveal">
+        <p class="res-estado">Semifinal · Vuelta</p>
+        <div class="res-equipos">
+          <div class="res-fila ganador">
+            <span class="res-nombre">Lobos FC</span>
+            <span class="res-goles" data-goles="5">0</span>
+          </div>
+          <div class="res-fila">
+            <span class="res-nombre">United Sport FC</span>
+            <span class="res-goles" data-goles="4">0</span>
+          </div>
+        </div>
+        <div class="res-meta">
+          <span>19/07/2026</span><span class="dot">●</span><span>Manalapan Field B</span><span class="dot">●</span><span>Global 5-6</span>
+        </div>
+      </article>
+
       <article class="card-resultado reveal">
         <p class="res-estado">Semifinal · Ida</p>
         <div class="res-equipos">
@@ -256,6 +274,46 @@
   </div>
 </section>
 
+<!-- ==================== EQUIPACIÓN (visor 360) ==================== -->
+<section class="seccion" id="equipacion">
+  <span class="texto-fondo" data-parallax="0.1">KIT</span>
+  <div class="contenedor">
+    <div class="titulo-seccion reveal-izq">
+      <p class="kicker">Equipación · Próximo Torneo</p>
+      <h2>La nueva <span style="color:var(--rojo)">camiseta</span></h2>
+    </div>
+
+    <div class="kit-grid">
+      <!-- Visor 3D real (Three.js): arrastrá para girar la camiseta 360° -->
+      <div class="kit-visor reveal-scale" id="kitVisor">
+        <img class="kit-cara" src="assets/kit-frente.png" alt="Camiseta United Sport FC" draggable="false">
+        <span class="kit-pista">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 5 4 12l5 7M15 5l5 7-5 7"/></svg>
+          Arrastrá para girar 360°
+        </span>
+      </div>
+
+      <div class="kit-info reveal">
+        <span class="kit-badge">Local · 2026 / 27</span>
+        <h3>Blanca y negra<br><span class="rojo">como manda el club</span></h3>
+        <p>Base blanca con mangas raglán y paneles laterales en negro, el escudo bordado al pecho. Modelo 3D real: arrastrá para girarla 360° y ver el dorsal <b>GABRIEL 7</b> en la espalda.</p>
+        <ul class="kit-specs">
+          <li><span>Modelo</span><b>Local — Home</b></li>
+          <li><span>Base</span><b>Blanco</b></li>
+          <li><span>Detalle</span><b>Mangas raglán negras</b></li>
+          <li><span>Escudo</span><b>Bordado al pecho</b></li>
+          <li><span>Dorsal</span><b>Gabriel · 7</b></li>
+        </ul>
+        <div class="kit-paleta">
+          <span class="kit-swatch"><i style="background:#f3f4f6"></i>Blanco</span>
+          <span class="kit-swatch"><i style="background:#141414"></i>Negro</span>
+          <span class="kit-swatch"><i style="background:#E11D2A"></i>Rojo</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ==================== TABLA ==================== -->
 <section class="seccion seccion-alt" id="tabla">
   <span class="texto-fondo" data-parallax="0.12">MOMCSL</span>
@@ -278,7 +336,7 @@
             <td class="pos">1</td><td><span class="equipo-celda"><svg class="logo-equipo" viewBox="0 0 100 114"><use href="#escudo-rival"/></svg>Real Oaxaca</span></td><td>10</td><td>8</td><td>1</td><td>1</td><td>40</td><td>14</td><td>+26</td><td class="pts">25</td>
           </tr>
           <tr class="destacado">
-            <td class="pos">2</td><td><span class="equipo-celda"><img class="logo-equipo" src="assets/escudo.png" alt="United Sport FC">United Sport FC</span></td><td>10</td><td>7</td><td>2</td><td>1</td><td>31</td><td>13</td><td>+18</td><td class="pts">23</td>
+            <td class="pos">2</td><td><span class="equipo-celda"><img class="logo-equipo" src="assets/escudo-nuevo.png" alt="United Sport FC">United Sport FC</span></td><td>10</td><td>7</td><td>2</td><td>1</td><td>31</td><td>13</td><td>+18</td><td class="pts">23</td>
           </tr>
           <tr>
             <td class="pos">3</td><td><span class="equipo-celda"><svg class="logo-equipo" viewBox="0 0 100 114"><use href="#escudo-rival"/></svg>Mazaltepec</span></td><td>10</td><td>5</td><td>4</td><td>1</td><td>23</td><td>15</td><td>+8</td><td class="pts">19</td>
@@ -380,10 +438,10 @@
           <article class="h2h">
             <div class="h2h-top">
               <span class="h2h-rival"><img class="logo-equipo" src="assets/equipos/lobos.jpg" alt="Lobos FC">Lobos FC</span>
-              <span class="h2h-record"><b>1</b> PG · <b>1</b> PE · <b>0</b> PP</span>
+              <span class="h2h-record"><b>1</b> PG · <b>1</b> PE · <b>1</b> PP</span>
             </div>
-            <div class="h2h-barra"><span class="v" style="flex:1"></span><span class="e" style="flex:1"></span></div>
-            <div class="h2h-meta"><span>Goles <b>8–1</b></span><span>7-0 (F5) · 1-1 (Semi ida)</span></div>
+            <div class="h2h-barra"><span class="v" style="flex:1"></span><span class="e" style="flex:1"></span><span class="d" style="flex:1"></span></div>
+            <div class="h2h-meta"><span>Goles <b>12–6</b></span><span>7-0 (F5) · 1-1 y 4-5 (Semi)</span></div>
           </article>
           <article class="h2h">
             <div class="h2h-top">
@@ -481,7 +539,7 @@
   <div class="contenedor">
     <div class="footer-grid">
       <div class="footer-marca">
-        <img class="mini-escudo" src="assets/escudo.png" alt="Escudo United Sport FC">
+        <img class="mini-escudo" src="assets/escudo-nuevo.png" alt="Escudo United Sport FC">
         <div>
           <div class="nombre">UNITED SPORT FC</div>
           <div class="lema">Humility · Heart · Family</div>
@@ -520,6 +578,8 @@
 <script src="js/plantel-data.js"></script>
 <script src="js/plantel.js"></script>
 <script src="js/main.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/kit3d.js" defer></script>
 <script src="js/panel.js"></script>
 </body>
 </html>
