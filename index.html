@@ -434,11 +434,12 @@
     </div>
   </div>
 
-  <!-- Carrusel infinito: las cards se dibujan desde js/mvps.js y se
-       repiten hasta llenar el ancho, así el loop no corta. El capitán
-       las carga desde /#panel → pestaña "MVPs". Si no hay premios
-       cargados, la sección se esconde sola. Se frena al pasar el mouse. -->
-  <div class="mvps-carrusel reveal" id="gridMvps"></div>
+  <!-- Visor: la card activa va al centro y las vecinas asoman a los
+       costados. Se turnan solas, se frena al pasar el mouse y se maneja
+       con flechas, puntitos, teclado o deslizando. Las cards se dibujan
+       desde js/mvps.js; el capitán las carga desde /#panel → "MVPs".
+       Si no hay premios cargados, la sección se esconde sola. -->
+  <div class="mvps-visor reveal" id="gridMvps" tabindex="0"></div>
 </section>
 
 <!-- ==================== GALERÍA ==================== -->
