@@ -1,9 +1,9 @@
 /* ============================================================
    UNITED SPORT FC — MVPs de la temporada
-   Visor tipo showcase: la card activa va grande al centro y las
-   vecinas asoman a los costados, más chicas y apagadas. Nunca se
-   repite un premio. Avanza sola, se frena al pasar el mouse y se
-   maneja con flechas, puntitos, teclado o deslizando el dedo.
+   Cinta continua: las cards se desplazan hacia la izquierda, se
+   desvanecen en el borde y vuelven a entrar por la derecha cuando
+   les toca la vuelta. Hay UNA sola card por premio en el HTML, así
+   que nunca se ve el mismo dos veces a la vez.
    Los datos salen de Supabase (o del fallback local).
    ============================================================ */
 (function(){
@@ -11,7 +11,8 @@
 
   var ESCUDO = 'assets/escudo-nuevo.png';
   var LIGA = 'assets/liga/momcsl.jpg';
-  var ESPERA = 5500;   // ms que queda quieta cada card
+  var VELOCIDAD = 62;   // píxeles por segundo del desplazamiento
+  var SEPARACION = 64;  // aire entre una card y la siguiente
 
   function esc(t){
     return String(t == null ? '' : t)
@@ -75,147 +76,54 @@
     '</article>';
   }
 
-  /* ---------- visor ---------- */
-  var visor = {
-    cont: null, escenario: null, cards: [], puntos: [],
-    activo: 0, total: 0, reloj: null
-  };
+  /* ---------- cinta ---------- */
+  var cinta = { cont: null, pista: null, cards: [] };
 
-  function controlesHTML(total){
-    var puntos = '';
-    for (var i = 0; i < total; i++){
-      puntos += '<button type="button" class="mvps-punto" data-mvp-a="' + i + '" aria-label="Premio ' + (i + 1) + '"></button>';
-    }
-    return '<div class="mvps-controles">' +
-      '<button type="button" class="mvps-flecha" data-mvp-ir="-1" aria-label="Premio anterior">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 5l-7 7 7 7"/></svg>' +
-      '</button>' +
-      '<div class="mvps-puntos">' + puntos + '</div>' +
-      '<button type="button" class="mvps-flecha" data-mvp-ir="1" aria-label="Premio siguiente">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5l7 7-7 7"/></svg>' +
-      '</button>' +
-    '</div>';
-  }
+  /* Todas las cards corren la misma animación (de derecha a izquierda) y
+     se escalonan con un retraso negativo: la 0 arranca recién entrando,
+     la 1 ya avanzó un paso, y así. Como el recorrido total mide justo
+     lo que ocupan todas juntas, cuando una sale por la izquierda la
+     siguiente está entrando por la derecha — sin huecos ni repeticiones. */
+  function acomodar(){
+    var cards = cinta.cards;
+    var n = cards.length;
+    if (!n || !cinta.pista) return;
 
-  /* Cada card se ubica según su distancia a la activa: 0 al centro,
-     ±1 asomando a los costados, el resto fuera de escena. */
-  function colocar(){
-    var n = visor.total;
-    visor.cards.forEach(function(card, i){
-      var pos = i - visor.activo;
-      if (pos > n / 2) pos -= n;
-      if (pos < -n / 2) pos += n;
-      card.dataset.pos = pos;
-      card.setAttribute('aria-hidden', pos === 0 ? 'false' : 'true');
-      card.style.zIndex = String(10 - Math.abs(pos));
-    });
-    visor.puntos.forEach(function(p, i){
-      p.classList.toggle('activo', i === visor.activo);
+    var anchoCard = cards[0].offsetWidth || 340;
+    var paso = anchoCard + SEPARACION;
+    var recorrido = Math.max(paso * n, (cinta.cont.clientWidth || window.innerWidth) + paso);
+    var ciclo = recorrido / VELOCIDAD;
+
+    cinta.pista.style.setProperty('--recorrido', recorrido + 'px');
+    cards.forEach(function(card, i){
+      card.style.animationDuration = ciclo.toFixed(2) + 's';
+      card.style.animationDelay = '-' + (ciclo * i / n).toFixed(2) + 's';
     });
     medir();
   }
 
-  /* El escenario no tiene alto propio (las cards van absolutas): se lo
-     damos con la más alta, así no salta al cambiar de premio. */
+  /* Las cards van absolutas, así que la pista no tiene alto propio:
+     se lo damos con la más alta para que la sección no salte. */
   function medir(){
-    if (!visor.escenario) return;
+    if (!cinta.pista) return;
     var alto = 0;
-    visor.cards.forEach(function(c){ alto = Math.max(alto, c.offsetHeight); });
-    if (alto) visor.escenario.style.height = alto + 'px';
+    cinta.cards.forEach(function(c){ alto = Math.max(alto, c.offsetHeight); });
+    if (alto) cinta.pista.style.height = alto + 'px';
   }
 
-  function ir(paso){
-    if (visor.total < 2) return;
-    visor.activo = (visor.activo + paso + visor.total) % visor.total;
-    colocar();
-  }
+  function armarCinta(cont, lista){
+    cont.innerHTML = '<div class="mvps-pista">' + lista.map(mvpHTML).join('') + '</div>';
+    cinta.cont = cont;
+    cinta.pista = cont.firstChild;
+    cinta.cards = Array.prototype.slice.call(cont.querySelectorAll('.mvp'));
+    cont.classList.toggle('mvps-solo', cinta.cards.length < 2 || menosMovimiento());
 
-  function arrancar(){
-    parar();
-    if (visor.total < 2 || menosMovimiento()) return;
-    visor.reloj = setInterval(function(){ ir(1); }, ESPERA);
-  }
-
-  function parar(){
-    if (visor.reloj){ clearInterval(visor.reloj); visor.reloj = null; }
-  }
-
-  function armarVisor(cont, lista){
-    parar();
-    cont.innerHTML =
-      '<div class="mvps-escenario">' + lista.map(mvpHTML).join('') + '</div>' +
-      (lista.length > 1 ? controlesHTML(lista.length) : '');
-
-    visor.cont = cont;
-    visor.escenario = cont.querySelector('.mvps-escenario');
-    visor.cards = Array.prototype.slice.call(cont.querySelectorAll('.mvp'));
-    visor.puntos = Array.prototype.slice.call(cont.querySelectorAll('.mvps-punto'));
-    visor.total = visor.cards.length;
-    visor.activo = 0;
-    cont.classList.toggle('mvps-solo', visor.total < 2);
-
-    colocar();
+    acomodar();
     // las fotos cambian el alto al terminar de cargar
     cont.querySelectorAll('img').forEach(function(img){
       img.addEventListener('load', medir);
     });
-    arrancar();
   }
-
-  /* ---------- controles ---------- */
-  document.addEventListener('click', function(e){
-    var cont = visor.cont;
-    if (!cont || !cont.contains(e.target)) return;
-
-    var flecha = e.target.closest('[data-mvp-ir]');
-    if (flecha){ ir(parseInt(flecha.dataset.mvpIr, 10)); arrancar(); return; }
-
-    var punto = e.target.closest('[data-mvp-a]');
-    if (punto){ visor.activo = parseInt(punto.dataset.mvpA, 10); colocar(); arrancar(); return; }
-
-    // tocar una card de al lado la trae al centro
-    var card = e.target.closest('.mvp');
-    if (card && card.dataset.pos !== '0'){
-      visor.activo = parseInt(card.dataset.i, 10);
-      colocar();
-      arrancar();
-    }
-  });
-
-  document.addEventListener('keydown', function(e){
-    var cont = visor.cont;
-    if (!cont || !cont.contains(document.activeElement)) return;
-    if (e.key === 'ArrowLeft'){ ir(-1); arrancar(); }
-    if (e.key === 'ArrowRight'){ ir(1); arrancar(); }
-  });
-
-  /* deslizar con el dedo */
-  var arrastre = null;
-  document.addEventListener('pointerdown', function(e){
-    if (!visor.cont || !visor.cont.contains(e.target)) return;
-    arrastre = { x: e.clientX, y: e.clientY };
-  }, { passive: true });
-  document.addEventListener('pointerup', function(e){
-    if (!arrastre) return;
-    var dx = e.clientX - arrastre.x;
-    var dy = e.clientY - arrastre.y;
-    arrastre = null;
-    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)){
-      ir(dx < 0 ? 1 : -1);
-      arrancar();
-    }
-  }, { passive: true });
-
-  /* se frena mientras lo mirás */
-  document.addEventListener('mouseenter', function(e){
-    if (visor.cont && e.target === visor.cont) parar();
-  }, true);
-  document.addEventListener('mouseleave', function(e){
-    if (visor.cont && e.target === visor.cont) arrancar();
-  }, true);
-  document.addEventListener('visibilitychange', function(){
-    if (document.hidden) parar(); else arrancar();
-  });
 
   /* ---------- render ---------- */
   var ultimosDatos = null;
@@ -231,23 +139,23 @@
     var enNav = document.querySelector('.nav-links a[href="#mvps"]');
 
     if (!lista.length){
-      parar();
       seccion.style.display = 'none';
       if (enNav && enNav.parentElement) enNav.parentElement.style.display = 'none';
       cont.innerHTML = '';
-      visor.cont = null;
+      cinta.cont = null;
+      cinta.cards = [];
       return;
     }
     seccion.style.display = '';
     if (enNav && enNav.parentElement) enNav.parentElement.style.display = '';
     if (temporada) temporada.textContent = (data.temporada || '').trim() || 'Temporada';
-    armarVisor(cont, lista);
+    armarCinta(cont, lista);
   }
 
   var relojMedida = null;
   window.addEventListener('resize', function(){
     clearTimeout(relojMedida);
-    relojMedida = setTimeout(medir, 200);
+    relojMedida = setTimeout(acomodar, 200);
   }, { passive: true });
 
   // Render inmediato con el fallback local
