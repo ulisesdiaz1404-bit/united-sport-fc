@@ -7,7 +7,8 @@
 (function(){
   'use strict';
 
-  var SILUETA = '<svg class="mvp-silueta" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Z"/></svg>';
+  var ESCUDO = 'assets/escudo-nuevo.png';
+  var LIGA = 'assets/liga/momcsl.jpg';
 
   function esc(t){
     return String(t == null ? '' : t)
@@ -15,18 +16,53 @@
       .replace(/"/g, '&quot;');
   }
 
+  /* Los nombres se guardan como lista. Los premios viejos (un solo
+     jugador en el campo "nombre") se siguen entendiendo igual. */
+  function nombresDe(m){
+    var lista = Array.isArray(m.nombres) ? m.nombres : String(m.nombre || '').split('\n');
+    return lista.map(function(n){ return String(n || '').trim(); })
+                .filter(function(n){ return n.length; });
+  }
+
   function mvpHTML(m){
-    var foto = m.foto ? '<img src="' + esc(m.foto) + '" alt="' + esc(m.nombre) + '" loading="lazy" onerror="this.style.display=\'none\'">' : '';
-    return '<article class="mvp reveal">' +
-      '<span class="mvp-rayas"></span>' +
-      '<div class="mvp-banda">' +
-        (m.premio ? '<span class="mvp-premio">' + esc(m.premio) + '</span>' : '') +
-        (m.subtitulo ? '<span class="mvp-sub">' + esc(m.subtitulo) + '</span>' : '') +
+    var nombres = nombresDe(m);
+    var varios = nombres.length > 1;
+    var foto = m.foto || ESCUDO;
+    var sinFoto = !m.foto;   // sin foto propia se usa el escudo, como en la placa de la defensa
+
+    return '<article class="mvp reveal' + (varios ? ' mvp-grupo' : '') + '">' +
+      '<div class="mvp-top">' +
+        '<div class="mvp-banda">' +
+          (m.premio ? '<span class="mvp-premio">' + esc(m.premio) + '</span>' : '') +
+          (m.subtitulo ? '<span class="mvp-sub">' + esc(m.subtitulo) + '</span>' : '') +
+        '</div>' +
+        '<div class="mvp-top-der">' +
+          '<img class="mvp-liga" src="' + LIGA + '" alt="Liga MOMCSL" loading="lazy" onerror="this.style.display=\'none\'">' +
+          '<span class="mvp-rayas"></span>' +
+        '</div>' +
       '</div>' +
-      '<div class="mvp-foto">' + SILUETA + foto + '</div>' +
-      '<div class="mvp-pie">' +
-        (m.numero != null && m.numero !== '' ? '<span class="mvp-num">#' + esc(m.numero) + '</span>' : '') +
-        '<span class="mvp-nombre">' + (esc(m.nombre) || '—') + '</span>' +
+
+      '<div class="mvp-marco' + (sinFoto ? ' sin-foto' : '') + '">' +
+        '<div class="mvp-foto">' +
+          '<img src="' + esc(foto) + '" alt="' + esc(nombres[0] || m.premio) + '" loading="lazy" onerror="this.style.display=\'none\'">' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="mvp-abajo">' +
+        '<div class="mvp-nombres">' +
+          '<span class="mvp-flechas">&gt;&gt;&gt;</span>' +
+          (m.etiqueta ? '<span class="mvp-etiqueta">' + esc(m.etiqueta) + ' :</span>' : '') +
+          (nombres.length
+            ? nombres.map(function(n){
+                var num = (!varios && m.numero != null && m.numero !== '') ? '<b>#' + esc(m.numero) + '</b> ' : '';
+                return '<span class="mvp-nombre">' + num + esc(n) + '</span>';
+              }).join('')
+            : '<span class="mvp-nombre">—</span>') +
+        '</div>' +
+        '<div class="mvp-club">' +
+          '<span class="mvp-club-a">United</span>' +
+          '<span class="mvp-club-b">Sport FC</span>' +
+        '</div>' +
       '</div>' +
       (m.nota ? '<p class="mvp-nota">' + esc(m.nota) + '</p>' : '') +
     '</article>';

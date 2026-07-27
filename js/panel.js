@@ -149,21 +149,30 @@
   }
 
   /* ---------- pestaña MVPs ---------- */
+  function nombresTexto(m){
+    var lista = Array.isArray(m.nombres) ? m.nombres : String(m.nombre || '').split('\n');
+    return lista.map(function(n){ return String(n || '').trim(); })
+                .filter(function(n){ return n.length; })
+                .join('\n');
+  }
+
   function mvpFilaHTML(m, i, total){
     var foto = (fotosMvps[m.id]) || m.foto || '';
     function v(x){ return String(x == null ? '' : x).replace(/"/g, '&quot;'); }
+    function t(x){ return String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
     return '<div class="pc-fila pc-mvp-fila" data-mvp="' + m.id + '">' +
-      '<button type="button" class="pc-foto" data-accion="mvpfoto" title="Cambiar foto">' +
+      '<button type="button" class="pc-foto" data-accion="mvpfoto" title="Cambiar foto (vacía = escudo del club)">' +
         (foto ? '<img src="' + foto + '" alt="" onerror="this.remove()">' : '') +
         '<span class="pc-foto-mas">📷</span>' +
       '</button>' +
       '<div class="pc-campos">' +
-        '<input class="pc-nombre pc-premio" data-mvpcampo="premio" value="' + v(m.premio) + '" placeholder="Premio (ej: Goalkeeper)">' +
+        '<input class="pc-nombre pc-premio" data-mvpcampo="premio" value="' + v(m.premio) + '" placeholder="Premio (ej: Best Defense)">' +
         '<input class="pc-nombre" data-mvpcampo="subtitulo" value="' + v(m.subtitulo) + '" placeholder="Bajada (ej: of the Season)">' +
         '<div class="pc-sub">' +
           '<input class="pc-num" data-mvpcampo="numero" type="number" min="1" max="99" value="' + v(m.numero) + '" placeholder="#">' +
-          '<input class="pc-pos" data-mvpcampo="nombre" value="' + v(m.nombre) + '" placeholder="Jugador">' +
+          '<input class="pc-pos" data-mvpcampo="etiqueta" value="' + v(m.etiqueta) + '" placeholder="Rótulo de la lista (ej: Defense)">' +
         '</div>' +
+        '<textarea class="pc-nombres" data-mvpcampo="nombres" rows="3" placeholder="Jugador (uno por línea si son varios)">' + t(nombresTexto(m)) + '</textarea>' +
         '<input class="pc-nombre" data-mvpcampo="nota" value="' + v(m.nota) + '" placeholder="Nota opcional (ej: 12 vallas invictas)">' +
       '</div>' +
       '<div class="pc-acciones">' +
@@ -176,7 +185,7 @@
 
   function cuerpoMvpsHTML(){
     var lista = estadoMvps.mvps || [];
-    return '<p class="pc-ayuda">Cada card es un premio de la temporada. Poné el <b>premio</b> (línea blanca), la <b>bajada</b> (línea roja), el jugador con su número y tocá la foto para subirla. Ordená con <b>↑ ↓</b>. Si borrás todos, la sección desaparece de la web.</p>' +
+    return '<p class="pc-ayuda">Cada card es un premio. Poné el <b>premio</b> (banda blanca), la <b>bajada</b> (banda roja) y los jugadores: <b>uno por línea</b> si el premio es de varios (ej: la defensa). El <b>#</b> solo se muestra cuando hay un único jugador. Foto vacía = se usa el <b>escudo del club</b>. Ordená con <b>↑ ↓</b>. Si borrás todos, la sección desaparece de la web.</p>' +
       '<div class="pc-temporada">' +
         '<label for="pcTemporada">Temporada</label>' +
         '<input id="pcTemporada" data-mvpmeta="temporada" value="' + String(estadoMvps.temporada || '').replace(/"/g, '&quot;') + '" placeholder="Spring 2026">' +
@@ -464,7 +473,7 @@
       sucioMvps = true;
       estadoMvps.mvps.push({
         id: 'm' + Date.now(), premio: '', subtitulo: 'of the Season',
-        nombre: '', numero: null, nota: '', foto: ''
+        etiqueta: '', nombres: [], numero: null, nota: '', foto: ''
       });
       dibujar();
       return;
@@ -551,6 +560,11 @@
       sucioMvps = true;
       if (campoMvp === 'numero'){
         m.numero = e.target.value === '' ? null : parseInt(e.target.value, 10);
+      } else if (campoMvp === 'nombres'){
+        m.nombres = e.target.value.split('\n')
+          .map(function(n){ return n.trim(); })
+          .filter(function(n){ return n.length; });
+        delete m.nombre;
       } else {
         m[campoMvp] = e.target.value;
       }

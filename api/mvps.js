@@ -74,11 +74,17 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Normalizar: número entero o null, textos recortados
+    // Normalizar: número entero o null, textos recortados, nombres como lista
     data.mvps.forEach(function (m) {
       const n = parseInt(m.numero, 10);
       m.numero = isNaN(n) ? null : n;
-      ['premio', 'subtitulo', 'nombre', 'nota'].forEach(function (campo) {
+      const nombres = Array.isArray(m.nombres) ? m.nombres : String(m.nombre || '').split('\n');
+      m.nombres = nombres
+        .map(function (x) { return String(x || '').trim().slice(0, 60); })
+        .filter(function (x) { return x.length; })
+        .slice(0, 20);
+      delete m.nombre;
+      ['premio', 'subtitulo', 'etiqueta', 'nota'].forEach(function (campo) {
         m[campo] = String(m[campo] || '').trim().slice(0, 120);
       });
     });
