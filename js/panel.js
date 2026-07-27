@@ -161,9 +161,10 @@
     function v(x){ return String(x == null ? '' : x).replace(/"/g, '&quot;'); }
     function t(x){ return String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
     return '<div class="pc-fila pc-mvp-fila" data-mvp="' + m.id + '">' +
-      '<button type="button" class="pc-foto" data-accion="mvpfoto" title="Cambiar foto (vacía = escudo del club)">' +
+      '<button type="button" class="pc-foto" data-accion="mvpfoto" title="Cambiar foto (sin foto se usa el escudo)">' +
         (foto ? '<img src="' + foto + '" alt="" onerror="this.remove()">' : '') +
         '<span class="pc-foto-mas">📷</span>' +
+        (foto ? '<span class="pc-foto-quitar" data-accion="mvpsinfoto" title="Quitar la foto y usar el escudo">✕</span>' : '') +
       '</button>' +
       '<div class="pc-campos">' +
         '<input class="pc-nombre pc-premio" data-mvpcampo="premio" value="' + v(m.premio) + '" placeholder="Premio (ej: Best Defense)">' +
@@ -355,7 +356,10 @@
     dibujar();
   });
 
-  /* ---------- foto: elegir archivo y achicar a 400px ---------- */
+  /* ---------- foto: elegir archivo y recortar ----------
+     Plantel: cuadrada de 400px (las fichas son redondas).
+     MVPs: vertical 4:5 de 800x1000, igual que la card de la placa
+     (una foto de cuerpo entero no se corta la cabeza ni los pies). */
   function elegirFoto(j, mapa, esMvp){
     mapa = mapa || fotosNuevas;
     var input = document.createElement('input');
@@ -366,12 +370,16 @@
       if (!f) return;
       var img = new Image();
       img.onload = function(){
-        var lado = 400;
+        var ancho = esMvp ? 800 : 400;
+        var alto = esMvp ? 1000 : 400;
         var canvas = document.createElement('canvas');
-        canvas.width = lado; canvas.height = lado;
+        canvas.width = ancho; canvas.height = alto;
         var ctx = canvas.getContext('2d');
-        var s = Math.min(img.width, img.height);
-        ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, lado, lado);
+        // recorte centrado que respeta la proporción de destino
+        var prop = ancho / alto;
+        var w = img.width, h = img.height;
+        if (w / h > prop) w = h * prop; else h = w / prop;
+        ctx.drawImage(img, (img.width - w) / 2, (img.height - h) / 2, w, h, 0, 0, ancho, alto);
         mapa[j.id] = canvas.toDataURL('image/jpeg', .82);
         if (esMvp) sucioMvps = true; else sucio = true;
         URL.revokeObjectURL(img.src);
@@ -486,6 +494,13 @@
       if (!m) return;
       var i = estadoMvps.mvps.indexOf(m);
       if (accion === 'mvpfoto'){ elegirFoto(m, fotosMvps, true); return; }
+      if (accion === 'mvpsinfoto'){
+        sucioMvps = true;
+        m.foto = '';
+        delete fotosMvps[m.id];
+        dibujar();
+        return;
+      }
       if (accion === 'mvpborrar'){
         sucioMvps = true;
         estadoMvps.mvps.splice(i, 1);
