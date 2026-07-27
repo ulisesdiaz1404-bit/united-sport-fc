@@ -62,9 +62,9 @@
       <li><a href="#fixture">Fixture</a></li>
       <li><a href="#resultados">Resultados</a></li>
       <li><a href="#plantel">Plantel</a></li>
-      <li><a href="#equipacion">Equipación</a></li>
       <li><a href="#tabla">Tabla</a></li>
       <li><a href="#stats">Stats</a></li>
+      <li><a href="#mvps">MVPs</a></li>
       <li><a href="#galeria">Galería</a></li>
       <li><a href="#club">El Club</a></li>
     </ul>
@@ -129,8 +129,7 @@
       </div>
 
       <p style="margin-top:26px;text-align:center;font-family:var(--fuente-sport);font-weight:600;letter-spacing:.06em;color:var(--gris);text-transform:uppercase">
-        Gracias por bancar toda la temporada. Volvemos con todo —
-        <a href="#equipacion" style="color:var(--rojo)">mirá la nueva camiseta del próximo torneo ↓</a>
+        Gracias por bancar toda la temporada. Volvemos con todo.
       </p>
     </div>
   </div>
@@ -270,46 +269,6 @@
     <div class="banco">
       <p class="banco-titulo">Banco de Suplentes</p>
       <div class="grid-banco" id="banco"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== EQUIPACIÓN (visor 360) ==================== -->
-<section class="seccion" id="equipacion">
-  <span class="texto-fondo" data-parallax="0.1">KIT</span>
-  <div class="contenedor">
-    <div class="titulo-seccion reveal-izq">
-      <p class="kicker">Equipación · Próximo Torneo</p>
-      <h2>La nueva <span style="color:var(--rojo)">camiseta</span></h2>
-    </div>
-
-    <div class="kit-grid">
-      <!-- Visor 3D real (Three.js): arrastrá para girar la camiseta 360° -->
-      <div class="kit-visor reveal-scale" id="kitVisor">
-        <img class="kit-cara" src="assets/kit-frente.png" alt="Camiseta United Sport FC" draggable="false">
-        <span class="kit-pista">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 5 4 12l5 7M15 5l5 7-5 7"/></svg>
-          Arrastrá para girar 360°
-        </span>
-      </div>
-
-      <div class="kit-info reveal">
-        <span class="kit-badge">Local · 2026 / 27</span>
-        <h3>Blanca y negra<br><span class="rojo">como manda el club</span></h3>
-        <p>Base blanca con mangas raglán y paneles laterales en negro, el escudo bordado al pecho. Modelo 3D real: arrastrá para girarla 360° y ver el dorsal <b>GABRIEL 7</b> en la espalda.</p>
-        <ul class="kit-specs">
-          <li><span>Modelo</span><b>Local — Home</b></li>
-          <li><span>Base</span><b>Blanco</b></li>
-          <li><span>Detalle</span><b>Mangas raglán negras</b></li>
-          <li><span>Escudo</span><b>Bordado al pecho</b></li>
-          <li><span>Dorsal</span><b>Gabriel · 7</b></li>
-        </ul>
-        <div class="kit-paleta">
-          <span class="kit-swatch"><i style="background:#f3f4f6"></i>Blanco</span>
-          <span class="kit-swatch"><i style="background:#141414"></i>Negro</span>
-          <span class="kit-swatch"><i style="background:#E11D2A"></i>Rojo</span>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -465,6 +424,23 @@
   </div>
 </section>
 
+<!-- ==================== MVPs DE LA TEMPORADA ==================== -->
+<section class="seccion seccion-mvps" id="mvps">
+  <span class="texto-fondo" data-parallax="0.1">MVPS</span>
+  <div class="contenedor">
+    <div class="titulo-seccion reveal-izq">
+      <p class="kicker">Premios · <span id="mvpsTemporada">Spring 2026</span></p>
+      <h2>MVPs de la <span style="color:var(--rojo)">Temporada</span></h2>
+    </div>
+
+    <!-- Las cards se dibujan desde js/mvps.js. El capitán las carga
+         desde /#panel → pestaña "MVPs" (premio, jugador, número, foto
+         y una nota opcional). Si no hay premios cargados, la sección
+         se esconde sola. -->
+    <div class="grid-mvps" id="gridMvps"></div>
+  </div>
+</section>
+
 <!-- ==================== GALERÍA ==================== -->
 <section class="seccion seccion-alt" id="galeria">
   <span class="texto-fondo" data-parallax="0.1">FAMILIA</span>
@@ -577,9 +553,10 @@
 
 <script src="js/plantel-data.js"></script>
 <script src="js/plantel.js"></script>
+<script src="js/mvps-data.js"></script>
+<script src="js/mvps.js"></script>
 <script src="js/main.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="js/kit3d.js" defer></script>
 <script src="js/panel.js"></script>
 </body>
 </html>

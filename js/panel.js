@@ -1,9 +1,13 @@
 /* ============================================================
    UNITED SPORT FC — Panel del Capitán
    Se abre entrando a la web con #panel (ej: unitedsport.com/#panel).
-   Los jugadores se arrastran (⠿) entre líneas para armar la
-   formación. Máximo 11 en cancha, un solo arquero y números
-   únicos. La C marca al capitán.
+   Dos pestañas:
+   · Plantel — los jugadores se arrastran (⠿) entre líneas para
+     armar la formación. Máximo 11 en cancha, un solo arquero y
+     números únicos. La C marca al capitán.
+   · MVPs — los premios de la temporada (premio, jugador, número,
+     foto y nota). Se ordenan con ↑ ↓.
+   Cada pestaña se guarda por separado.
    ============================================================ */
 (function(){
   'use strict';
@@ -19,18 +23,37 @@
 
   var estado = null;        // copia editable del plantel
   var fotosNuevas = {};     // id -> dataURL (se suben al guardar)
+  var estadoMvps = null;    // copia editable de los MVPs
+  var fotosMvps = {};       // id -> dataURL
+  var tab = 'plantel';      // pestaña abierta: 'plantel' | 'mvps'
   var root = null;
   var passVal = '';         // la contraseña sobrevive a los re-dibujados
 
   // Si la página se abre desde el archivo local (file://), igual guarda en la web
-  var API = (location.protocol === 'https:' || location.protocol === 'http:')
-    ? '/api/plantel'
-    : 'https://united-sport-fc.vercel.app/api/plantel';
+  var BASE = (location.protocol === 'https:' || location.protocol === 'http:')
+    ? ''
+    : 'https://united-sport-fc.vercel.app';
+  var API = BASE + '/api/plantel';
+  var API_MVPS = BASE + '/api/mvps';
 
   function clonar(x){ return JSON.parse(JSON.stringify(x)); }
 
   function datosActuales(){
     return clonar(window.USFC.PLANTEL_ACTUAL || window.USFC.PLANTEL_DEFAULT);
+  }
+
+  function datosMvps(){
+    var d = clonar(window.USFC.MVPS_ACTUAL || window.USFC.MVPS_DEFAULT || {});
+    if (!Array.isArray(d.mvps)) d.mvps = [];
+    if (typeof d.temporada !== 'string') d.temporada = '';
+    return d;
+  }
+
+  function buscarMvp(id){
+    for (var k = 0; k < estadoMvps.mvps.length; k++){
+      if (estadoMvps.mvps[k].id === id) return estadoMvps.mvps[k];
+    }
+    return null;
   }
 
   function buscar(id){
@@ -57,7 +80,8 @@
   }
 
   /* ---------- apertura / cierre ---------- */
-  var sucio = false; // hay cambios sin guardar
+  var sucio = false;      // plantel con cambios sin guardar
+  var sucioMvps = false;  // MVPs con cambios sin guardar
 
   function abrir(){
     if (!root){
@@ -68,12 +92,15 @@
     }
     root.classList.add('abierto');
     document.body.style.overflow = 'hidden';
-    root.innerHTML = '<div class="pc-caja"><p class="pc-ayuda">Cargando plantel…</p></div>';
+    root.innerHTML = '<div class="pc-caja"><p class="pc-ayuda">Cargando datos…</p></div>';
 
-    // Esperar los datos guardados antes de mostrar (si no, aparecería el plantel de fábrica)
-    var listo = window.USFC.listo || Promise.resolve(null);
-    listo.then(function(){
+    // Esperar los datos guardados antes de mostrar (si no, aparecerían los de fábrica)
+    Promise.all([
+      window.USFC.listo || Promise.resolve(null),
+      window.USFC.listoMvps || Promise.resolve(null)
+    ]).then(function(){
       if (!sucio || !estado) estado = datosActuales();
+      if (!sucioMvps || !estadoMvps) estadoMvps = datosMvps();
       dibujar();
     });
   }
@@ -121,32 +148,86 @@
     '</div>';
   }
 
+  /* ---------- pestaña MVPs ---------- */
+  function mvpFilaHTML(m, i, total){
+    var foto = (fotosMvps[m.id]) || m.foto || '';
+    function v(x){ return String(x == null ? '' : x).replace(/"/g, '&quot;'); }
+    return '<div class="pc-fila pc-mvp-fila" data-mvp="' + m.id + '">' +
+      '<button type="button" class="pc-foto" data-accion="mvpfoto" title="Cambiar foto">' +
+        (foto ? '<img src="' + foto + '" alt="" onerror="this.remove()">' : '') +
+        '<span class="pc-foto-mas">📷</span>' +
+      '</button>' +
+      '<div class="pc-campos">' +
+        '<input class="pc-nombre pc-premio" data-mvpcampo="premio" value="' + v(m.premio) + '" placeholder="Premio (ej: Goalkeeper)">' +
+        '<input class="pc-nombre" data-mvpcampo="subtitulo" value="' + v(m.subtitulo) + '" placeholder="Bajada (ej: of the Season)">' +
+        '<div class="pc-sub">' +
+          '<input class="pc-num" data-mvpcampo="numero" type="number" min="1" max="99" value="' + v(m.numero) + '" placeholder="#">' +
+          '<input class="pc-pos" data-mvpcampo="nombre" value="' + v(m.nombre) + '" placeholder="Jugador">' +
+        '</div>' +
+        '<input class="pc-nombre" data-mvpcampo="nota" value="' + v(m.nota) + '" placeholder="Nota opcional (ej: 12 vallas invictas)">' +
+      '</div>' +
+      '<div class="pc-acciones">' +
+        '<button type="button" class="pc-mover" data-accion="mvparriba" title="Subir"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+        '<button type="button" class="pc-mover" data-accion="mvpabajo" title="Bajar"' + (i === total - 1 ? ' disabled' : '') + '>↓</button>' +
+        '<button type="button" class="pc-borrar" data-accion="mvpborrar" title="Quitar">✕</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function cuerpoMvpsHTML(){
+    var lista = estadoMvps.mvps || [];
+    return '<p class="pc-ayuda">Cada card es un premio de la temporada. Poné el <b>premio</b> (línea blanca), la <b>bajada</b> (línea roja), el jugador con su número y tocá la foto para subirla. Ordená con <b>↑ ↓</b>. Si borrás todos, la sección desaparece de la web.</p>' +
+      '<div class="pc-temporada">' +
+        '<label for="pcTemporada">Temporada</label>' +
+        '<input id="pcTemporada" data-mvpmeta="temporada" value="' + String(estadoMvps.temporada || '').replace(/"/g, '&quot;') + '" placeholder="Spring 2026">' +
+      '</div>' +
+      '<div class="pc-lista">' +
+        (lista.length
+          ? lista.map(function(m, i){ return mvpFilaHTML(m, i, lista.length); }).join('')
+          : '<p class="pc-vacio">Todavía no hay premios cargados. Agregá el primero acá abajo.</p>') +
+      '</div>' +
+      '<div class="pc-agregar-fila">' +
+        '<button type="button" class="pc-agregar" data-accion="mvpagregar">+ Agregar premio</button>' +
+      '</div>';
+  }
+
+  function cuerpoPlantelHTML(){
+    var dt = estado.jugadores.filter(function(j){ return j.rol === 'dt'; });
+    return '<p class="pc-ayuda">Agarrá el <b>⠿</b> y arrastrá al jugador a la línea donde querés que juegue (o a Suplentes). Máximo <b>11 en cancha</b> y un solo arquero. Marcá la <b>C</b> para el capitán. Números no repetidos. Tocá la foto para cambiarla.</p>' +
+      '<div class="pc-lista">' +
+        GRUPOS.map(function(g){ return grupoHTML(g[0], g[1]); }).join('') +
+        '<div class="pc-grupo" data-linea="dt"><p class="pc-grupo-titulo">Cuerpo Técnico</p><div class="pc-grupo-lista">' + dt.map(filaHTML).join('') + '</div></div>' +
+      '</div>' +
+      '<div class="pc-agregar-fila">' +
+        '<button type="button" class="pc-agregar" data-accion="agregar">+ Agregar jugador</button>' +
+        '<button type="button" class="pc-agregar" data-accion="agregarct">+ Agregar cuerpo técnico</button>' +
+      '</div>';
+  }
+
   function dibujar(){
     var nTit = titulares().length;
-    var dt = estado.jugadores.filter(function(j){ return j.rol === 'dt'; });
+    var contador = tab === 'plantel'
+      ? '<span class="pc-contador' + (nTit > 11 ? ' exceso' : (nTit === 11 ? ' completo' : '')) + '">En cancha: ' + nTit + '/11</span>'
+      : '<span class="pc-contador">Premios: ' + (estadoMvps.mvps || []).length + '</span>';
     root.innerHTML =
       '<div class="pc-caja">' +
         '<div class="pc-cabecera">' +
           '<h3>Panel del Capitán</h3>' +
-          '<span class="pc-contador' + (nTit > 11 ? ' exceso' : (nTit === 11 ? ' completo' : '')) + '">En cancha: ' + nTit + '/11</span>' +
+          contador +
           '<button type="button" class="pc-cerrar" data-accion="cerrar">✕</button>' +
         '</div>' +
-        '<p class="pc-ayuda">Agarrá el <b>⠿</b> y arrastrá al jugador a la línea donde querés que juegue (o a Suplentes). Máximo <b>11 en cancha</b> y un solo arquero. Marcá la <b>C</b> para el capitán. Números no repetidos. Tocá la foto para cambiarla.</p>' +
-        '<div class="pc-lista">' +
-          GRUPOS.map(function(g){ return grupoHTML(g[0], g[1]); }).join('') +
-          '<div class="pc-grupo" data-linea="dt"><p class="pc-grupo-titulo">Cuerpo Técnico</p><div class="pc-grupo-lista">' + dt.map(filaHTML).join('') + '</div></div>' +
+        '<div class="pc-tabs">' +
+          '<button type="button" class="pc-tab' + (tab === 'plantel' ? ' activo' : '') + '" data-accion="tab" data-tab="plantel">Plantel</button>' +
+          '<button type="button" class="pc-tab' + (tab === 'mvps' ? ' activo' : '') + '" data-accion="tab" data-tab="mvps">MVPs</button>' +
         '</div>' +
-        '<div class="pc-agregar-fila">' +
-          '<button type="button" class="pc-agregar" data-accion="agregar">+ Agregar jugador</button>' +
-          '<button type="button" class="pc-agregar" data-accion="agregarct">+ Agregar cuerpo técnico</button>' +
-        '</div>' +
+        (tab === 'plantel' ? cuerpoPlantelHTML() : cuerpoMvpsHTML()) +
         '<div class="pc-pie">' +
           '<input type="password" id="pcPass" placeholder="Contraseña del capitán" autocomplete="current-password" value="' + passVal.replace(/"/g, '&quot;') + '">' +
           '<button type="button" class="pc-guardar" data-accion="guardar">Guardar y publicar</button>' +
         '</div>' +
         '<p class="pc-msj" id="pcMsj"></p>' +
       '</div>';
-    marcarNumerosRepetidos();
+    if (tab === 'plantel') marcarNumerosRepetidos();
   }
 
   function marcarNumerosRepetidos(){
@@ -266,7 +347,8 @@
   });
 
   /* ---------- foto: elegir archivo y achicar a 400px ---------- */
-  function elegirFoto(j){
+  function elegirFoto(j, mapa, esMvp){
+    mapa = mapa || fotosNuevas;
     var input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -281,8 +363,8 @@
         var ctx = canvas.getContext('2d');
         var s = Math.min(img.width, img.height);
         ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, lado, lado);
-        fotosNuevas[j.id] = canvas.toDataURL('image/jpeg', .82);
-        sucio = true;
+        mapa[j.id] = canvas.toDataURL('image/jpeg', .82);
+        if (esMvp) sucioMvps = true; else sucio = true;
         URL.revokeObjectURL(img.src);
         dibujar();
       };
@@ -296,13 +378,15 @@
     var campo = document.getElementById('pcPass');
     var pass = (campo && campo.value) || passVal || '';
     if (!pass){ msj('Poné la contraseña del capitán (el campo de acá abajo).', true); return; }
+    passVal = pass;
+
+    if (tab === 'mvps'){ guardarMvps(pass); return; }
 
     var nTit = titulares().length;
     if (nTit > 11){ msj('Hay ' + nTit + ' en cancha y el máximo es 11.', true); return; }
     var repes = numerosRepetidos();
     if (repes.length){ msj('Números repetidos: ' + repes.join(', ') + '. Cada jugador tiene que tener un número distinto.', true); return; }
 
-    passVal = pass;
     msj('Guardando…');
     fetch(API, {
       method: 'POST',
@@ -330,6 +414,39 @@
     .catch(function(e){ msj('No se pudo conectar con el servidor: ' + e.message, true); });
   }
 
+  function guardarMvps(pass){
+    var sinTitulo = (estadoMvps.mvps || []).filter(function(m){
+      return !String(m.premio || '').trim() && !String(m.subtitulo || '').trim();
+    });
+    if (sinTitulo.length){ msj('Hay ' + sinTitulo.length + ' premio(s) sin título. Completá al menos la línea del premio.', true); return; }
+
+    msj('Guardando…');
+    fetch(API_MVPS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pass, data: estadoMvps, fotos: fotosMvps })
+    })
+    .then(function(r){
+      return r.json()
+        .then(function(b){ return { ok: r.ok, status: r.status, b: b }; })
+        .catch(function(){ return { ok: false, status: r.status, b: {} }; });
+    })
+    .then(function(res){
+      if (!res.ok){
+        msj((res.b.error || 'Error al guardar') + ' (HTTP ' + res.status + ')', true);
+        return;
+      }
+      window.USFC.MVPS_ACTUAL = res.b.data;
+      estadoMvps = clonar(res.b.data);
+      fotosMvps = {};
+      sucioMvps = false;
+      window.USFC.renderMvps(res.b.data);
+      dibujar();
+      msj('✔ Publicado. Ya se ve en la web.');
+    })
+    .catch(function(e){ msj('No se pudo conectar con el servidor: ' + e.message, true); });
+  }
+
   /* ---------- eventos (delegados) ---------- */
   document.addEventListener('click', function(e){
     if (!root || !root.classList.contains('abierto')) return;
@@ -339,6 +456,48 @@
 
     if (accion === 'cerrar'){ cerrar(); return; }
     if (accion === 'guardar'){ guardar(); return; }
+    if (accion === 'tab'){
+      if (tab !== boton.dataset.tab){ tab = boton.dataset.tab; dibujar(); }
+      return;
+    }
+    if (accion === 'mvpagregar'){
+      sucioMvps = true;
+      estadoMvps.mvps.push({
+        id: 'm' + Date.now(), premio: '', subtitulo: 'of the Season',
+        nombre: '', numero: null, nota: '', foto: ''
+      });
+      dibujar();
+      return;
+    }
+
+    // acciones sobre una card de MVP
+    var filaMvp = boton.closest('.pc-mvp-fila');
+    if (filaMvp){
+      var m = buscarMvp(filaMvp.dataset.mvp);
+      if (!m) return;
+      var i = estadoMvps.mvps.indexOf(m);
+      if (accion === 'mvpfoto'){ elegirFoto(m, fotosMvps, true); return; }
+      if (accion === 'mvpborrar'){
+        sucioMvps = true;
+        estadoMvps.mvps.splice(i, 1);
+        dibujar();
+        return;
+      }
+      if (accion === 'mvparriba' && i > 0){
+        sucioMvps = true;
+        estadoMvps.mvps.splice(i - 1, 0, estadoMvps.mvps.splice(i, 1)[0]);
+        dibujar();
+        return;
+      }
+      if (accion === 'mvpabajo' && i < estadoMvps.mvps.length - 1){
+        sucioMvps = true;
+        estadoMvps.mvps.splice(i + 1, 0, estadoMvps.mvps.splice(i, 1)[0]);
+        dibujar();
+        return;
+      }
+      return;
+    }
+
     if (accion === 'agregarct'){
       sucio = true;
       estado.jugadores.push({
@@ -377,6 +536,27 @@
 
   document.addEventListener('change', function(e){
     if (!root || !root.classList.contains('abierto')) return;
+
+    // pestaña MVPs
+    if (e.target.dataset && e.target.dataset.mvpmeta === 'temporada'){
+      sucioMvps = true;
+      estadoMvps.temporada = e.target.value;
+      return;
+    }
+    var filaMvp = e.target.closest('.pc-mvp-fila');
+    if (filaMvp){
+      var m = buscarMvp(filaMvp.dataset.mvp);
+      var campoMvp = e.target.dataset.mvpcampo;
+      if (!m || !campoMvp) return;
+      sucioMvps = true;
+      if (campoMvp === 'numero'){
+        m.numero = e.target.value === '' ? null : parseInt(e.target.value, 10);
+      } else {
+        m[campoMvp] = e.target.value;
+      }
+      return;
+    }
+
     var fila = e.target.closest('.pc-fila');
     if (!fila) return;
     var j = buscar(fila.dataset.id);
