@@ -30,7 +30,7 @@
     var foto = m.foto || ESCUDO;
     var sinFoto = !m.foto;   // sin foto propia se usa el escudo, como en la placa de la defensa
 
-    return '<article class="mvp reveal' + (varios ? ' mvp-grupo' : '') + '">' +
+    return '<article class="mvp' + (varios ? ' mvp-grupo' : '') + '">' +
       '<div class="mvp-top">' +
         '<div class="mvp-banda">' +
           (m.premio ? '<span class="mvp-premio">' + esc(m.premio) + '</span>' : '') +
@@ -68,40 +68,77 @@
     '</article>';
   }
 
-  var primerRender = true;
+  var VELOCIDAD = 55;      // píxeles por segundo del carrusel
+  var ultimosDatos = null; // para poder redibujar al cambiar el ancho
+
+  function menosMovimiento(){
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  /* Marquesina infinita: como los premios son pocos, el set de cards se
+     repite hasta pasar el ancho de la pantalla y después se duplica entero.
+     La animación corre exactamente el largo de una vuelta (--vuelta), así
+     el salto al reiniciar cae justo y no se nota el corte. */
+  function armarCarrusel(carrusel, lista){
+    var unSet = lista.map(mvpHTML).join('');
+    carrusel.innerHTML = '<div class="mvps-pista"></div>';
+    var pista = carrusel.firstChild;
+    pista.innerHTML = unSet;
+
+    if (menosMovimiento()){
+      carrusel.classList.add('sin-animacion'); // queda como fila que se arrastra a mano
+      return;
+    }
+    carrusel.classList.remove('sin-animacion');
+
+    var ancho = carrusel.clientWidth || window.innerWidth;
+    var vueltas = 1;
+    while (pista.scrollWidth < ancho * 1.2 && vueltas < 12){
+      pista.insertAdjacentHTML('beforeend', unSet);
+      vueltas++;
+    }
+
+    // largo real de una vuelta = cards + separación (el margen del último cuenta)
+    var tarjetas = pista.children;
+    var separacion = tarjetas.length ? parseFloat(getComputedStyle(tarjetas[0]).marginRight) || 0 : 0;
+    var vuelta = 0;
+    for (var i = 0; i < tarjetas.length; i++) vuelta += tarjetas[i].offsetWidth + separacion;
+
+    pista.insertAdjacentHTML('beforeend', pista.innerHTML);
+    pista.style.setProperty('--vuelta', vuelta + 'px');
+    pista.style.animationDuration = Math.max(12, Math.round(vuelta / VELOCIDAD)) + 's';
+  }
 
   function render(data){
     var seccion = document.getElementById('mvps');
-    var grid = document.getElementById('gridMvps');
+    var carrusel = document.getElementById('gridMvps');
     var temporada = document.getElementById('mvpsTemporada');
-    if (!seccion || !grid) return;
+    if (!seccion || !carrusel) return;
 
+    ultimosDatos = data;
     var lista = (data && data.mvps) || [];
     var enNav = document.querySelector('.nav-links a[href="#mvps"]');
 
     if (!lista.length){
       seccion.style.display = 'none';
       if (enNav && enNav.parentElement) enNav.parentElement.style.display = 'none';
-      grid.innerHTML = '';
+      carrusel.innerHTML = '';
       return;
     }
     seccion.style.display = '';
     if (enNav && enNav.parentElement) enNav.parentElement.style.display = '';
     if (temporada) temporada.textContent = (data.temporada || '').trim() || 'Temporada';
-    grid.innerHTML = lista.map(mvpHTML).join('');
-
-    /* El primer dibujado ocurre antes que el observer de main.js, así que las
-       cards entran con la animación de scroll normal. Los siguientes (datos de
-       Supabase o guardado desde el panel) ya no están observados: se muestran
-       visibles a mano para que no queden invisibles. */
-    if (!primerRender){
-      grid.querySelectorAll('.reveal').forEach(function(el, i){
-        el.style.transitionDelay = (i * 90) + 'ms';
-        requestAnimationFrame(function(){ el.classList.add('visible'); });
-      });
-    }
-    primerRender = false;
+    armarCarrusel(carrusel, lista);
   }
+
+  /* Al cambiar el ancho hay que recalcular cuántas copias entran */
+  var reloj = null, anchoPrevio = window.innerWidth;
+  window.addEventListener('resize', function(){
+    if (window.innerWidth === anchoPrevio) return; // en móvil la barra del navegador dispara resize de más
+    anchoPrevio = window.innerWidth;
+    clearTimeout(reloj);
+    reloj = setTimeout(function(){ if (ultimosDatos) render(ultimosDatos); }, 250);
+  }, { passive: true });
 
   // Render inmediato con el fallback local
   window.USFC.renderMvps = render;

@@ -729,7 +729,35 @@ svg.logo-equipo{background:transparent;object-fit:contain}
     radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255,255,255,.03), transparent 60%),
     var(--negro);
 }
-.grid-mvps{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:28px}
+/* Carrusel infinito. La pista lleva el set de cards repetido y después
+   duplicado entero; la animación corre justo una vuelta (--vuelta), así
+   el reinicio cae en el mismo punto y no se ve el corte. */
+.mvps-carrusel{
+  /* el padding deja aire para el levantón y la sombra de la card al hover,
+     que si no los corta el overflow */
+  position:relative;overflow:hidden;padding:14px 0 40px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+}
+.mvps-pista{
+  display:flex;align-items:stretch;width:max-content;
+  animation:mvps-desliza linear infinite;
+  will-change:transform;
+}
+@keyframes mvps-desliza{
+  from{transform:translateX(0)}
+  to{transform:translateX(calc(-1 * var(--vuelta,50%)))}
+}
+.mvps-carrusel:hover .mvps-pista,
+.mvps-carrusel:focus-within .mvps-pista{animation-play-state:paused}
+.mvps-pista .mvp{
+  flex:0 0 clamp(270px,80vw,350px);
+  margin-right:28px;
+}
+/* sin animación: se arrastra a mano */
+.mvps-carrusel.sin-animacion{overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:18px}
+.mvps-carrusel.sin-animacion .mvps-pista{animation:none;padding:0 20px}
+.mvps-carrusel.sin-animacion .mvp{scroll-snap-align:center}
 /* Cada card replica la placa de Instagram:
    bandas blanca+roja arriba a la izquierda, logo de la liga y franjas
    diagonales a la derecha, foto con borde rasgado, nombres abajo a la

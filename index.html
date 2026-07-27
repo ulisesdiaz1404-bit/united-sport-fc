@@ -432,13 +432,13 @@
       <p class="kicker">Premios · <span id="mvpsTemporada">Spring 2026</span></p>
       <h2>MVPs de la <span style="color:var(--rojo)">Temporada</span></h2>
     </div>
-
-    <!-- Las cards se dibujan desde js/mvps.js. El capitán las carga
-         desde /#panel → pestaña "MVPs" (premio, jugador, número, foto
-         y una nota opcional). Si no hay premios cargados, la sección
-         se esconde sola. -->
-    <div class="grid-mvps" id="gridMvps"></div>
   </div>
+
+  <!-- Carrusel infinito: las cards se dibujan desde js/mvps.js y se
+       repiten hasta llenar el ancho, así el loop no corta. El capitán
+       las carga desde /#panel → pestaña "MVPs". Si no hay premios
+       cargados, la sección se esconde sola. Se frena al pasar el mouse. -->
+  <div class="mvps-carrusel reveal" id="gridMvps"></div>
 </section>
 
 <!-- ==================== GALERÍA ==================== -->
