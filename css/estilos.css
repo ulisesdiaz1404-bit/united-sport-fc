@@ -729,41 +729,55 @@ svg.logo-equipo{background:transparent;object-fit:contain}
     radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255,255,255,.03), transparent 60%),
     var(--negro);
 }
-/* Cinta continua hacia la izquierda. Hay una sola card por premio: cada
-   una corre el mismo recorrido con un retraso distinto, así que cuando
-   una sale por la izquierda la que sigue viene entrando por la derecha.
-   Nunca se ve el mismo premio dos veces. */
-.mvps-visor{
-  position:relative;overflow:hidden;
-  padding:14px 0 30px;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
-  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+/* Carrusel de una card por vez. La pista lleva un solo slide por premio:
+   al terminar cada paso el que salió se manda al final sin transición, así
+   el loop es infinito y nunca se ve dos veces la misma placa. */
+.mvps-visor{position:relative}
+.mvps-marco-vista{
+  overflow:hidden;
+  /* aire para el levantón y la sombra de la card al hover */
+  padding:14px 0 34px;
 }
-.mvps-pista{position:relative;transition:height .4s ease}
-.mvps-visor .mvp{
-  position:absolute;top:0;left:50%;
-  width:clamp(280px,84vw,360px);
-  margin-left:calc(-.5 * clamp(280px,84vw,360px));
-  animation:mvps-pasa linear infinite;
+.mvps-pista{
+  display:flex;align-items:stretch;
+  transition:transform .7s cubic-bezier(.65,.05,.36,1);
   will-change:transform;
 }
-/* de derecha a izquierda, creciendo apenas al pasar por el centro */
-@keyframes mvps-pasa{
-  from{transform:translateX(calc(var(--recorrido,1200px) / 2)) scale(.9)}
-  50% {transform:translateX(0) scale(1)}
-  to  {transform:translateX(calc(var(--recorrido,1200px) / -2)) scale(.9)}
+.mvps-slide{
+  flex:0 0 100%;display:flex;justify-content:center;padding:0 20px;
 }
-/* se frena mientras la mirás */
-.mvps-visor:hover .mvp,
-.mvps-visor:focus-within .mvp{animation-play-state:paused}
+/* la placa es vertical como la de Instagram: si se ensancha de más
+   queda altísima, así que se limita el ancho */
+.mvps-slide .mvp{width:100%;max-width:430px;padding:26px 24px 28px}
 
 /* un solo premio (o movimiento reducido): queda quieta y centrada */
-.mvps-visor.mvps-solo{overflow-x:auto;-webkit-mask-image:none;mask-image:none}
-.mvps-visor.mvps-solo .mvps-pista{
-  display:flex;justify-content:center;flex-wrap:wrap;gap:28px;height:auto!important;
+.mvps-visor.mvps-solo .mvps-pista{transition:none;justify-content:center}
+
+/* ---- flechas y puntitos ---- */
+.mvps-controles{
+  display:flex;align-items:center;justify-content:center;gap:22px;
+  margin-top:10px;
 }
-.mvps-visor.mvps-solo .mvp{
-  position:relative;left:auto;margin-left:0;animation:none;transform:none;
+.mvps-flecha{
+  width:46px;height:46px;flex-shrink:0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.04);border:1px solid var(--card-borde);
+  border-radius:50%;color:var(--gris);
+  transition:color .25s,border-color .25s,background .25s,transform .25s;
+}
+.mvps-flecha svg{width:20px;height:20px}
+.mvps-flecha:hover{color:#fff;border-color:var(--rojo);background:rgba(225,29,42,.16);transform:scale(1.08)}
+.mvps-flecha:active{transform:scale(.96)}
+.mvps-puntos{display:flex;align-items:center;gap:10px}
+.mvps-punto{
+  width:9px;height:9px;border-radius:50%;cursor:pointer;padding:0;
+  background:var(--card-borde);border:none;
+  transition:background .25s,width .35s cubic-bezier(.22,.61,.36,1);
+}
+.mvps-punto:hover{background:var(--gris)}
+.mvps-punto.activo{background:var(--rojo);width:28px;border-radius:5px}
+@media (prefers-reduced-motion:reduce){
+  .mvps-pista{transition:none}
 }
 /* Cada card replica la placa de Instagram:
    bandas blanca+roja arriba a la izquierda, logo de la liga y franjas
